@@ -1,0 +1,12 @@
+# Compiled python modules.
+__pycache__/
+# Logs
+*.log*
+# Build locations
+build/
+dist/
+*.egg-info/
+# IDE
+.vscode/
+# Sphinx
+docs/_build/

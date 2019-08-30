@@ -1,0 +1,71 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "formatters": {
+        "verbose": {
+            "()": "logging.Formatter",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            "format": "%(asctime)s\t%(threadName)s\t[%(levelname)s]@%(name)s (%(module)s/%(filename)s/%(funcName)s/%(lineno)d): %(message)s"
+        },
+        "colored": {
+            "()": "coloredlogs.ColoredFormatter",
+            "format": "%(asctime)s\t%(levelname)s\t%(threadName)s\t%(name)s\t%(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "colored",
+            "stream": "ext://sys.stdout"
+        },
+        "file_handler": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 5000000,
+            "backupCount": 20,
+            "formatter": "verbose",
+            "filename": "/var/log/vcdextproxy.log",
+            "mode": "a",
+            "encoding": "utf-8"
+        },
+        "file_handler_err": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 5000000,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "filename": "/var/log/vcdextproxy_error.log",
+            "mode": "a",
+            "encoding": "utf-8"
+        },
+        "file_handler_debug": {
+            "level": "TRIVIA",
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 5000000,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "filename": "/var/log/vcdextproxy_debug.log",
+            "mode": "a",
+            "encoding": "utf-8"
+        }
+    },
+    "loggers": {
+        "requests" : {
+            "level": "WARNING"
+        },
+        "urllib3": {
+            "level": "ERROR"
+        }
+    },
+    "root": {
+        "handlers": [
+            "console",
+            "file_handler",
+            "file_handler_err",
+            "file_handler_debug"
+        ],
+        "level": "TRIVIA"
+    }
+}

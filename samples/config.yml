@@ -1,0 +1,50 @@
+global:
+  vcloud:
+    hostname: vcdservername
+    username: login
+    password: "********"
+    api_version: 31
+  log:
+    config_file: logging.json
+  amqp:
+    host: amqpservername
+    port: 5671
+    ssl: yes
+    vhost: "%2F" # == /
+    username: login
+    password: "********"
+
+
+extensions:
+  - example1:
+    backend:
+      endpoint: http://127.0.0.1:8881
+      ssl_verify: no
+      auth: # basic auth
+        username: rest_username
+        password: "********"
+    amqp:
+      routing_key: example1
+      exchange:
+        name: defaultExchange
+        type: direct
+        durable: yes
+      queue:
+        name: example1
+        message_ttl: 40000
+      declare: no
+  - example2:
+    backend:
+      endpoint: http://127.0.0.1:8882
+      ssl_verify: no
+      auth: # basic auth
+        username: rest_username
+        password: "********"
+    amqp:
+      routing_key: example2
+      exchange:
+        name: defaultExchange
+      queue:
+        name: example2
+        message_ttl: 40
+      declare: no
