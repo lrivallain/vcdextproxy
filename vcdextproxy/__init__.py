@@ -8,7 +8,10 @@ if sys.version_info < (3, 6):
     raise Exception('vcdextproxy requires Python versions 3.6 or later.')
 
 __all__ = [
-    #TODO
+    'rest_worker',
+    'amqp_worker',
+    'utils',
+    'configuration'
 ]
 
 __version__="0.0.1"
