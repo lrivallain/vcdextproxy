@@ -9,7 +9,8 @@ import logging
 from kombu import Exchange, Queue, Connection
 from kombu.mixins import ConsumerMixin
 from kombu.utils.debug import setup_logging as kombu_setup_logging
-from rest_worker import RESTWorker
+from .rest_worker import RESTWorker
+from .configuration import conf
 
 
 # name the logger for the current module
@@ -46,13 +47,14 @@ class AMQPWorker(ConsumerMixin):
             [kombu.messaging.Consumer]: A list of consumers with callback to local task.
         """
         consumers = []
-        for extension_name in conf('extensions').keys:
-            routing_key = conf(extension_conf_path + '.amqp.routing_key'
-            if routing_key in self.workers.keys()
+        for extension_declare in conf('extensions'):
+            extension_name = extension_declare.keys()[0]
+            extension_conf_path = 'extensions.' + extension_name
+            routing_key = conf(extension_conf_path + '.amqp.routing_key')
+            if routing_key in self.workers.keys():
                 # critical case: duplicate routing_key in configuration
                 logger.critical(f"Duplicate routing_key {routing_key} for multiple extensions.")
                 return
-            extension_conf_path = 'extensions.' + extension_name
             logger.info(f"Extension {extension_name} - Initializating a new listener.")
             logger.debug(f"Extension {extension_name} - Preparing a new Exchange object: " + conf(extension_conf_path + '.amqp.exchange.name'))
             exchange = Exchange(
@@ -76,7 +78,7 @@ class AMQPWorker(ConsumerMixin):
                     callbacks=[self.process_task]
                 )
             )
-            self.registered_extensions['routing_key'] = extension_name
+            self.registered_extensions[routing_key] = extension_name
             logger.info(f"Extension {extension_name} - New extension is registred.")
         return consumers
 

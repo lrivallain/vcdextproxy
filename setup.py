@@ -23,7 +23,6 @@ setup(
         "kombu",
         "coloredlogs",
         "requests",
-        "yaml",
         "cachetools"
     ],
     classifiers=[

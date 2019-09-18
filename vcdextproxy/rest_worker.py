@@ -5,6 +5,8 @@ import requests
 import json
 from threading import Thread
 from requests.auth import HTTPBasicAuth
+from .configuration import conf
+
 
 # name the worker for the module
 logger = logging.getLogger(__name__)
@@ -82,7 +84,7 @@ class RESTWorker(Thread):
         req_data = self.request[0]
         # parse information from user request
         method = req_data.get('method', 'get').lower() # force lower to be able to use it in requests
-        query_string query_string = req_data.get('queryString', None)
+        query_string = req_data.get('queryString', None)
         request_uri = req_data.get('requestUri', None)
         # decode request body
         body = base64.b64decode(req_data.get('body', ''))

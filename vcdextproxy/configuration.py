@@ -8,6 +8,7 @@ import logging.config
 import os
 import sys
 import json
+import yaml
 from pathlib import Path
 import urllib3
 from cachetools import cached, TTLCache
@@ -39,7 +40,7 @@ def read_configuration():
         logger.info(f"Reading configuration from `{conf_path}/config.yml`.")
         with open(os.path.join(conf_path, 'config.yml'), 'r') as conf_file:
             try:
-                return yaml.load(conf_file)
+                return yaml.load(conf_file, Loader=yaml.SafeLoader)
             except yaml.YAMLError as e:
                 logger.critical(f"YAML parser error when reading the configuration file: {str(e)}")
                 exit(-1)
@@ -61,7 +62,7 @@ def get_configuration_item(configuration_item, default=DEFAULT):
     Returns:
         any: Configuration setting or the default value.
     """
-    logger.debug(f"Looking for configuration item: {configuration_item}")
+    logger.trivia(f"Looking for configuration item: {configuration_item}")
     if default is DEFAULT:
         mandatory = True
     else:
@@ -96,8 +97,9 @@ def configure_logger():
     # create trivia level (9)
     add_log_level('trivia', 9)
     # create logger
+    conf_path = os.environ.get(env_setting_conf)
     with open(
-        os.path.join(conf_path, conf("log.config_file")),
+        os.path.join(conf_path, conf("global.log.config_file")),
         "r", encoding="utf-8"
     ) as fd:
         logging.config.dictConfig(json.load(fd))
