@@ -83,7 +83,7 @@ def get_configuration_item(configuration_item, default=DEFAULT):
                 logger.critical(err_msg)
                 raise e
             else:
-                logger.debug("Returning the default value for configuration item: {configuration_item}")
+                logger.debug(f"Returning the default value for configuration item: {configuration_item}")
                 return default
     return config_walker
 

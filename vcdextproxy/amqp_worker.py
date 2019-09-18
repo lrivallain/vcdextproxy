@@ -17,6 +17,17 @@ from .configuration import conf
 logger = logging.getLogger(__name__)
 
 
+# def amqp_errback(error, interval):
+#     """Provide custom error callback on amqp connection status
+
+#     Args:
+#         error (Exception): The raised error
+#         interval (int): Time interval between retries
+#     """
+#     logger.error(f"Error: {error}", exc_info=1)
+#     logger.info(f"Retry in {interval} seconds.")
+
+
 class AMQPWorker(ConsumerMixin):
     """kombu.ConsumerMixin based object.
 
@@ -59,7 +70,7 @@ class AMQPWorker(ConsumerMixin):
             logger.debug(f"Extension {extension_name} - Preparing a new Exchange object: " + conf(extension_conf_path + '.amqp.exchange.name'))
             exchange = Exchange(
                 name=conf(extension_conf_path + '.amqp.exchange.name'),
-                type=conf(extension_conf_path + '.amqp.exchange.type', 'direct'),
+                type=conf(extension_conf_path + '.amqp.exchange.type', 'topic'),
                 durable=conf(extension_conf_path + '.amqp.exchange.durable', True),
                 no_declare=conf(extension_conf_path + '.amqp.declare', True)
             )
