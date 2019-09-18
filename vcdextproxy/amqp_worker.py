@@ -34,7 +34,8 @@ class AMQPWorker(ConsumerMixin):
         self.connection = connection
         # Reduce logging from amqp module
         kombu_setup_logging(loglevel='INFO', loggers=['amqp'])
-        self.registered_extensions = {}
+        self.registered_extensions = {} # keep extensions
+        self.registered_workers = {}  # keep routing keys
 
     def get_consumers(self, Consumer, channel):
         """Return the consumer objects.
@@ -47,11 +48,10 @@ class AMQPWorker(ConsumerMixin):
             [kombu.messaging.Consumer]: A list of consumers with callback to local task.
         """
         consumers = []
-        for extension_declare in conf('extensions'):
-            extension_name = extension_declare.keys()[0]
+        for extension_name in conf('extensions'):
             extension_conf_path = 'extensions.' + extension_name
             routing_key = conf(extension_conf_path + '.amqp.routing_key')
-            if routing_key in self.workers.keys():
+            if routing_key in self.registered_workers.keys():
                 # critical case: duplicate routing_key in configuration
                 logger.critical(f"Duplicate routing_key {routing_key} for multiple extensions.")
                 return
