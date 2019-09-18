@@ -101,11 +101,16 @@ class AMQPWorker(ConsumerMixin):
             body (str): JSON message body as a string.
             message (str): JSON message metadata as a string.
         """
+        try:
+            message.ack()
+        except ConnectionResetError:
+            logger.error("Listener: ConnectionResetError: message may not have been acknowledged...")
         logger.info("Listener: New message received in MQ")
-        routing_key = message.properties['routing_key']
+        routing_key = message.delivery_info['routing_key']
         extension = self.registered_extensions.get(routing_key)
         if not extension:
             logger.error(f"Listener: Cannot found the configuration data for the routink_key {routing_key}")
+            message.requeue() # reject and sent it back to server
             return # Do nothing
         logger.debug(f"Message with routing_key {routing_key} is associated to extension {extension}")
         # Parsing JSON
@@ -114,13 +119,9 @@ class AMQPWorker(ConsumerMixin):
             json_payload = json.loads(body)
             logger.debug("Body of message was successfully load as JSON.")
         except ValueError:
-            logger.warning(f"Listener: Invalid JSON data received: ignoring the message\n{body}")
+            logger.warning(f"Listener: Invalid JSON data received: rejecting the message\n{body}")
             return
         # Acknowledge it
-        try:
-            message.ack()
-        except ConnectionResetError:
-            logger.error("Listener: ConnectionResetError: message may not have been acknowledged...")
         # Getting the correct worker
         logger.debug("Listener: Processing request message in a new thread...")
         try:
