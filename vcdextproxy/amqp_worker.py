@@ -72,15 +72,15 @@ class AMQPWorker(ConsumerMixin):
                 name=conf(extension_conf_path + '.amqp.exchange.name'),
                 type=conf(extension_conf_path + '.amqp.exchange.type', 'topic'),
                 durable=conf(extension_conf_path + '.amqp.exchange.durable', True),
-                no_declare=conf(extension_conf_path + '.amqp.declare', True)
+                no_declare=not conf(extension_conf_path + '.amqp.declare', True)
             )
             logger.debug(f"Extension {extension_name} - Preparing a new Queue object: " + conf(extension_conf_path + '.amqp.queue.name'))
             queue = Queue(
                 name=conf(extension_conf_path + '.amqp.queue.name'),
                 exchange=exchange,
                 routing_key=routing_key,
-                no_declare=conf(extension_conf_path + '.amqp.declare', True),
-                message_ttl=conf(extension_conf_path + '.amqp.queue.message_ttl', 30000)
+                no_declare=not conf(extension_conf_path + '.amqp.declare', True),
+                message_ttl=conf(extension_conf_path + '.amqp.queue.message_ttl', 30)
             )
             logger.debug(f"Extension {extension_name} - Adding a new process task as callback for incoming messages")
             consumers.append(
@@ -91,6 +91,7 @@ class AMQPWorker(ConsumerMixin):
             )
             self.registered_extensions[routing_key] = extension_name
             logger.info(f"Extension {extension_name} - New extension is registred.")
+        logger.info("All extensions are now registred. Listening for incoming messages...")
         return consumers
 
     def process_task(self, body, message):
@@ -101,11 +102,19 @@ class AMQPWorker(ConsumerMixin):
             message (str): JSON message metadata as a string.
         """
         logger.info("Listener: New message received in MQ")
+        routing_key = message.properties['routing_key']
+        extension = self.registered_extensions.get(routing_key)
+        if not extension:
+            logger.error(f"Listener: Cannot found the configuration data for the routink_key {routing_key}")
+            return # Do nothing
+        logger.debug(f"Message with routing_key {routing_key} is associated to extension {extension}")
         # Parsing JSON
         try:
+            logger.trivia("Loading body as a JSON content...")
             json_payload = json.loads(body)
+            logger.debug("Body of message was successfully load as JSON.")
         except ValueError:
-            logger.error("Listener: Invalid JSON data received: ignoring the message\n{body}")
+            logger.warning(f"Listener: Invalid JSON data received: ignoring the message\n{body}")
             return
         # Acknowledge it
         try:
@@ -114,11 +123,6 @@ class AMQPWorker(ConsumerMixin):
             logger.error("Listener: ConnectionResetError: message may not have been acknowledged...")
         # Getting the correct worker
         logger.debug("Listener: Processing request message in a new thread...")
-        routing_key = message.properties['routing_key']
-        extension = self.registered_extensions.get(routing_key)
-        if not extension:
-            logger.error(f"Listener: Cannot found the configuration data for the routink_key {routing_key}")
-            return # Do nothing
         try:
             thread = RESTWorker(
                 extension = extension,
