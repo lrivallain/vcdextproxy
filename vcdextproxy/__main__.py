@@ -45,6 +45,7 @@ def main():
     amqp_url += f"@{conf('global.amqp.host')}:{conf('global.amqp.port')}/{conf('global.amqp.vhost')}"
     if conf('global.amqp.ssl'):
         amqp_url += "?ssl=1"
+    logger.debug(f"RabbitMQ server URI: {amqp_url}")
     with Connection(amqp_url, heartbeat=4) as conn:
         # Start dispatcher service
         logger.info("Dispatcher service creation")

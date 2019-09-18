@@ -13,6 +13,7 @@ from pathlib import Path
 import urllib3
 from cachetools import cached, TTLCache
 
+# name the logger for the current module
 logger = logging.getLogger(__name__)
 
 env_setting_conf = "VCDEXTPROXY_CONFIGURATION_PATH"
