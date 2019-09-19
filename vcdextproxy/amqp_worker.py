@@ -88,7 +88,7 @@ class AMQPWorker(ConsumerMixin):
                 name=conf(extension_conf_path + '.amqp.exchange.name'),
                 type=conf(extension_conf_path + '.amqp.exchange.type', 'topic'),
                 durable=conf(extension_conf_path + '.amqp.exchange.durable', True),
-                no_declare=not conf(extension_conf_path + '.amqp.declare', True)
+                no_declare=conf(extension_conf_path + '.amqp.no_declare', True)
             )
             self.log_extension('debug', extension_name,
                 f"Preparing a new Queue object: " + conf(extension_conf_path + '.amqp.queue.name'))
@@ -96,7 +96,7 @@ class AMQPWorker(ConsumerMixin):
                 name=conf(extension_conf_path + '.amqp.queue.name'),
                 exchange=exchange,
                 routing_key=routing_key,
-                no_declare=not conf(extension_conf_path + '.amqp.declare', True),
+                no_declare=conf(extension_conf_path + '.amqp.no_declare', True),
                 message_ttl=conf(extension_conf_path + '.amqp.queue.message_ttl', 30)
             )
             self.log_extension('debug', extension_name,

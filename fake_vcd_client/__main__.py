@@ -78,7 +78,6 @@ class VcdSession():
         else:
             return r.content
 
-
     def get_auth_token(self, username, password):
         """Retrieve an auth token to authenticate user for further requests.
 
@@ -111,6 +110,10 @@ def main(host, username, password, no_verify):
     logger.info("List current orgs for the user")
     for org in vcd_sess.get('/api/org').get("org", []):
         print(json.dumps(org, indent=2))
+    logger.info("Requesting data from example1")
+    print(json.dumps(vcd_sess.get('/api/example1/test/toto')))
+    logger.info("Requesting data from example2")
+    print(json.dumps(vcd_sess.get('/api/this/is/1/test/example2/test/azerty?toto')))
 
 
 if __name__ == '__main__':
