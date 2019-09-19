@@ -142,7 +142,7 @@ class RESTWorker(Thread):
             status_code = 405
             self.reply(rsp_body, status_code)
         except Exception as e:
-            self.log(error, f"Unmanaged error raised: {str, e)}")
+            self.log(error, f"Unmanaged error raised: {str(e)}")
             raise e # raise other errors as usual
         # forward the requests to the backend
         try:
@@ -173,7 +173,7 @@ class RESTWorker(Thread):
             rsp_body = {"Error": "RequestException from extension backend server"}
             status_code = 502
         except Exception as e:
-            self.log(error(f"Unmanaged error raised: {str, e)}", exc_info=1))
+            self.log(error(f"Unmanaged error raised: {str(e)}", exc_info=1))
             rsp_body = {"Error": "Unmanaged error raised"}
             status_code = 500
         self.reply(rsp_body, status_code)
