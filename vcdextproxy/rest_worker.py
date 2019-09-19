@@ -104,7 +104,7 @@ class RESTWorker(Thread):
             raise e # raise other errors as usual
         # forward the requests to the backend
         r = forward_request(
-            self.get_full_url(self, request_uri, query_string),
+            self.get_full_url(request_uri, query_string),
             data=body,
             auth=self.get_extension_auth(),
             headers=self.headers,
