@@ -119,8 +119,6 @@ class VcdSession():
         """
         logger.info(f"New DELETE request to VCD API: {uri_path}")
         self.session.headers["Content-Type"] = content_type
-        if content_type == "application/json":
-            data = json.dumps(data)
         r = self.session.delete(
             f"https://{self.hostname}{uri_path}",
             verify=self.verify_ssl
