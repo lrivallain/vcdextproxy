@@ -46,7 +46,7 @@ class AMQPWorker(ConsumerMixin):
         # Reduce logging from amqp module
         kombu_setup_logging(loglevel='INFO', loggers=['amqp'])
         self.registered_extensions = {} # keep extensions
-        self.registered_workers = {}  # keep routing keys
+        self.registered_workers = {} # keep routing keys
 
     def log_extension(self, level, extension, message, *args, **kwargs):
         """Log a information about an extension by adding a prefix
@@ -82,20 +82,16 @@ class AMQPWorker(ConsumerMixin):
                 logger.critical(f"Duplicate routing_key '{routing_key}' for multiple extensions.")
                 return None
             self.log_extension('info', extension_name, f"Initializating a new listener.")
-            self.log_extension(
-                'debug', extension_name,
-                f"Preparing a new Exchange object: " + conf(extension_conf_path + '.amqp.exchange.name')
-            )
+            self.log_extension('debug', extension_name,
+                f"Preparing a new Exchange object: " + conf(extension_conf_path + '.amqp.exchange.name'))
             exchange = Exchange(
                 name=conf(extension_conf_path + '.amqp.exchange.name'),
                 type=conf(extension_conf_path + '.amqp.exchange.type', 'topic'),
                 durable=conf(extension_conf_path + '.amqp.exchange.durable', True),
                 no_declare=not conf(extension_conf_path + '.amqp.declare', True)
             )
-            self.log_extension(
-                'debug', extension_name,
-                f"Preparing a new Queue object: " + conf(extension_conf_path + '.amqp.queue.name')
-            )
+            self.log_extension('debug', extension_name,
+                f"Preparing a new Queue object: " + conf(extension_conf_path + '.amqp.queue.name'))
             queue = Queue(
                 name=conf(extension_conf_path + '.amqp.queue.name'),
                 exchange=exchange,
@@ -103,10 +99,8 @@ class AMQPWorker(ConsumerMixin):
                 no_declare=not conf(extension_conf_path + '.amqp.declare', True),
                 message_ttl=conf(extension_conf_path + '.amqp.queue.message_ttl', 30)
             )
-            self.log_extension(
-                'debug', extension_name,
-                f"Adding a new process task as callback for incoming messages"
-            )
+            self.log_extension('debug', extension_name,
+                f"Adding a new process task as callback for incoming messages")
             consumers.append(
                 Consumer(
                     queues=[queue],
@@ -129,40 +123,30 @@ class AMQPWorker(ConsumerMixin):
             message.ack()
         except ConnectionResetError:
             logger.error("Listener: ConnectionResetError: message may not have been acknowledged...")
-        logger.info("Listener: New message received in MQ")
+        logger.debug("Listener: New message received in MQ")
         routing_key = message.delivery_info['routing_key']
         extension = self.registered_extensions.get(routing_key)
         if not extension:
             logger.error(f"Listener: Cannot found the configuration data for the routing_key {routing_key}")
             message.requeue() # reject and sent it back to server
             return # Do nothing
-        self.log_extension(
-            'info', extension ,
-            f"Listener: Message with routing_key {routing_key} is received."
-        )
+        self.log_extension('info', extension ,
+            f"Listener: Message with routing_key '{routing_key}' is received.")
         # Parsing JSON
         try:
-            self.log_extension(
-                'trivia', extension,
-                "Listener: Loading body as a JSON content..."
-            )
+            self.log_extension('debug', extension,
+                "Listener: Loading body as a JSON content...")
             json_payload = json.loads(body)
-            self.log_extension(
-                'debug', extension,
-                "Listener: Body of message was successfully load as JSON."
-            )
+            self.log_extension('debug', extension,
+                "Listener: Body of message was successfully load as JSON.")
         except ValueError:
-            self.log_extension(
-                'warning', extension,
-                f"Listener: Invalid JSON data received: rejecting the message\n{body}"
-            )
+            self.log_extension('warning', extension,
+                f"Listener: Invalid JSON data received: rejecting the message\n{body}")
             return
         # Acknowledge it
         # Getting the correct worker
-        self.log_extension(
-            'debug', extension,
-            "Listener: Processing request message in a new thread..."
-        )
+        self.log_extension('debug', extension,
+            "Listener: Processing request message in a new thread...")
         try:
             thread = RESTWorker(
                 extension = extension,
@@ -189,10 +173,8 @@ class AMQPWorker(ConsumerMixin):
         if not extension:
             logger.error(f"Publisher: Cannot found the configuration data for the routing_key {routing_key}")
             return # Do nothing
-        self.log_extension(
-            'info', extension,
-            f"Publisher: Reply with routing_key {routing_key} is received. Sending a message to MQ...."
-        )
+        self.log_extension('info', extension,
+            f"Publisher: Reply with routing_key {routing_key} is received. Sending a message to MQ....")
         rqueue = Queue(
             properties.get('reply_to'),
             Exchange(
@@ -230,7 +212,5 @@ class AMQPWorker(ConsumerMixin):
             )
             self.log_extension('info', extension, "Publisher: Response sent to MQ")
         except ConnectionResetError:
-            self.log_extension(
-                'error', extension,
-                "Publisher: ConnectionResetError: message may be not sent..."
-            )
+            self.log_extension('error', extension,
+                "Publisher: ConnectionResetError: message may be not sent...")
