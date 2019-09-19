@@ -28,7 +28,7 @@ class RootApi(Resource):
         # Content-Length contained multiple unmatching values #15
         headers.pop('Content-Length', None)
         headers.pop('content-length', None)
-        h['X-FAKE-DATA'] = f'GET request on /test/{path}'
+        headers['X-FAKE-DATA'] = f'GET request on /test/{path}'
         return {**content, **headers}, 200, headers
 
     def post(self, path):
