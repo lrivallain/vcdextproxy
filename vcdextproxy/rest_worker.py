@@ -42,7 +42,7 @@ class RESTWorker(Thread):
             level (str): Log level for the information
             message (str): Message to log
         """
-        _message = f"[{self.extension_name}] {message}"
+        _message = f"[{self.extension_name}] {str(message)}"
         try:
             getattr(logger, level)(_message, args, kwargs)
         except AttributeError as e:
@@ -147,7 +147,7 @@ class RESTWorker(Thread):
         # forward the requests to the backend
         try:
             r = forward_request(
-                self.get_full_url(request_uri, query_string),
+                self.get_full_url(),
                 data=body,
                 auth=self.get_extension_auth(),
                 headers=self.headers,
