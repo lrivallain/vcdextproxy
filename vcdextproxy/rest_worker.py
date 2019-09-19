@@ -114,6 +114,7 @@ class RESTWorker(Thread):
         if isinstance(rsp_body, dict):
             rsp_body = json.dumps(rsp_body)
         resp_prop = {
+            "routing_key": self.amqp_message.delivery_info['routing_key'], # for mapping in amqp/publisher
             "id": self.id,
             "accept": self.headers.get('Accept', None),
             "correlation_id": self.amqp_message.properties['correlation_id'],
