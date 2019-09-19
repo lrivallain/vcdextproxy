@@ -78,7 +78,7 @@ def get_configuration_item(configuration_item, default=DEFAULT):
             config_walker = config_walker[sub_item]
         except KeyError as e:
             if mandatory: # badaboum!
-                err_msg = f"Missing mandatory configuration parameter: {configuration_item}"
+                err_msg = f"Missing mandatory configuration parameter: {configuration_item}. "
                 err_msg += "Please refer to documentation."
                 logger.critical(err_msg)
                 raise e

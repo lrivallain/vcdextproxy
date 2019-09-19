@@ -36,10 +36,10 @@ class RESTWorker(Thread):
         Returns:
             HTTPBasicAuth: Auth context.
         """
-        if conf(self.extension_name + '.backend.auth', False):
+        if conf(f"extensions.{self.extension_name}.backend.auth", False):
             return HTTPBasicAuth(
-                conf(self.extension_name + '.backend.auth.username'),
-                conf(self.extension_name + '.backend.auth.password')
+                conf(f"extensions.{self.extension_name}.backend.username"),
+                conf(f"extensions.{self.extension_name}.backend.password")
             )
         return None
 
@@ -69,7 +69,7 @@ class RESTWorker(Thread):
         Returns:
             str: The full URL to request on backend.
         """
-        full_req_path = conf(self.extension_name + '.backend.endoint')
+        full_req_path = conf(f"extensions.{self.extension_name}.backend.endoint")
         full_req_path += req_uri + "?" + query_string
         return full_req_path
 
@@ -108,7 +108,7 @@ class RESTWorker(Thread):
             data=body,
             auth=self.get_extension_auth(),
             headers=self.headers,
-            verify=conf(self.extension_name + '.backend.ssl_verify', True)
+            verify=conf(f"extensions.{self.extension_name}.backend.ssl_verify", True)
         )
         # parse response
         try:
