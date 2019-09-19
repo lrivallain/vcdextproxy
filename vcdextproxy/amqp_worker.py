@@ -133,7 +133,7 @@ class AMQPWorker(ConsumerMixin):
             )
             thread.start()
         except Exception as e:
-            logger.error(f"Listener: Task raised exception: {str(e)}")
+            logger.error(f"Listener: Task raised exception: {str(e)}", exc_info=1)
 
     def publish(self, data, properties):
         """Publish a message through the current connection.
