@@ -156,7 +156,7 @@ class VcdSession():
 @click.option('-u', '--username', help="Username for vCD", required=True)
 @click.option('-p', '--password', help='Password for vCD user', required=True)
 @click.option('-k', '--no_verify', is_flag=True, help="Ignore SSL errors")
-@click.option('-s', '--sleep', default="1", help="Sleep time between requests")
+@click.option('-s', '--sleep', default=1, help="Sleep time between requests")
 def main(host, username, password, no_verify, sleep):
     """Execute the client.
     """
