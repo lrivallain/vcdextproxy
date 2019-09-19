@@ -133,7 +133,7 @@ class VcdSession():
 
 def print_r(r):
     data = [
-        r.method,
+        r.request.method,
         r.request.url,
         r.status_code,
         r.content[:40]
