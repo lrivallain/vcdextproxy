@@ -110,6 +110,9 @@ class RESTWorker(Thread):
         """
         # prepare reply properties
         self.log('info', f"Replying with HTTP response code: {status_code}")
+        # if body is a dict, then stringify it
+        if isinstance(rsp_body, dict):
+            rsp_body = json.dumps(rsp_body)
         resp_prop = {
             "id": self.id,
             "accept": self.headers.get('Accept', None),
