@@ -133,9 +133,9 @@ class VcdSession():
 
 def print_r(r):
     data = [
+        str(r.status_code),
         r.request.method,
         r.request.url,
-        str(r.status_code),
         str(r.content[:50]) + '...'
     ]
     print(" - ".join(data))
