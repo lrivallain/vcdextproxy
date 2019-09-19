@@ -56,7 +56,7 @@ class RESTWorker(Thread):
         # parse information from vcd request metadata. Add them to request headers #10
         headers['org_id'] = vcd_data.get('org', '').split("urn:vcloud:org:")[1]
         headers['user_id'] = vcd_data.get('user', '').split("urn:vcloud:user:")[1]
-        headers['user_rights'] = vcd_data.get('rights')
+        headers['user_rights'] = json.dumps(vcd_data.get('rights'))
         return headers
 
     def get_full_url(self, req_uri, query_string):
