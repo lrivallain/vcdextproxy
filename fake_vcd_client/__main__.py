@@ -98,9 +98,9 @@ class VcdSession():
 
 
 @click.command()
-@click.option('-h', '--host', help="vCD server to use")
-@click.option('-u', '--username', help="Username for vCD")
-@click.option('-p', '--password', help='Password for vCD user')
+@click.option('-h', '--host', help="vCD server to use", required=True)
+@click.option('-u', '--username', help="Username for vCD", required=True)
+@click.option('-p', '--password', help='Password for vCD user', required=True)
 @click.option('-k', '--no_verify', is_flag=False, help="Ignore SSL errors")
 def main(host, username, password, no_verify):
     """Execute the client.
