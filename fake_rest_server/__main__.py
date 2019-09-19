@@ -50,6 +50,7 @@ class RootApi(Resource):
         return {**content, **headers}, 202, headers
 
     def delete(self, path):
+        content = {'hello': 'world'}
         headers = dict(request.headers)
         # Content-Length contained multiple unmatching values #15
         headers.pop('Content-Length', None)
