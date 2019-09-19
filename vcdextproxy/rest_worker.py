@@ -49,7 +49,9 @@ class RESTWorker(Thread):
         Returns:
             dict: The headers dictionnary
         """
+        # split request content from vcd context data
         vcd_data = self.request[1]
+        req_data = self.request[0]
         headers = headers = req_data.get('headers', {})
         # parse information from vcd request metadata. Add them to request headers #10
         headers['org_id'] = vcd_data.get('org', '').split("urn:vcloud:org:")[1]
@@ -75,7 +77,7 @@ class RESTWorker(Thread):
         """Run some pre-checks like checking rights.
         """
         #TODO: check rights + org membership
-        pass
+        return True
 
     def run(self):
         """Handle all messages received on the RabbitMQ Exchange.
@@ -93,7 +95,7 @@ class RESTWorker(Thread):
             raise Exception("Pre check error") #TODO: Do better exceptions
         # search the appropriate requests attr
         try:
-            forward_request = requests.getattr(method)  # Get the requests function based on the requested method
+            forward_request = getattr(requests, method) # Get the requests function based on the requested method
         except AttributeError as e:
             logger.error(f"The method {method} is not supported.")
             return
