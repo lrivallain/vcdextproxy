@@ -136,7 +136,7 @@ def print_r(r):
         r.request.method,
         r.request.url,
         str(r.status_code),
-        json.dumps(json.loads(r.content[:40]))
+        str(r.content[:40])
     ]
     print(" - ".join(data))
 
