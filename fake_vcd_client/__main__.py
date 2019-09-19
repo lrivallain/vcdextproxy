@@ -105,7 +105,7 @@ class VcdSession():
         else:
             return r.content
 
-    def delete(self, uri_path, data, content_type="application/json", parse_out=True):
+    def delete(self, uri_path, content_type="application/json", parse_out=True):
         """Manage DELETE requests.
 
         Args:
