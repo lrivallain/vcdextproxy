@@ -123,8 +123,7 @@ class VcdSession():
             data = json.dumps(data)
         r = self.session.delete(
             f"https://{self.hostname}{uri_path}",
-            verify=self.verify_ssl,
-            data=data
+            verify=self.verify_ssl
         )
         if parse_out:
             return json.loads(r.content)
@@ -184,7 +183,7 @@ def main(host, username, password, no_verify):
         sleep(2)
         logger.info("Deleting data in example1")
         print(json.dumps(
-            vcd_sess.delete('/api/example1/test/toto', {}),
+            vcd_sess.delete('/api/example1/test/toto'),
             indent=2
         ))
         sleep(2)
