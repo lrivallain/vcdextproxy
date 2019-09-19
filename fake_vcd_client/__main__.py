@@ -138,7 +138,7 @@ def print_r(r):
         r.request.url,
         str(r.content[:50]) + '...'
     ]
-    print(" - ".join(data))
+    print(" >> ".join(data))
 
 @click.command()
 @click.option('-h', '--host', help="vCD server to use", required=True)
