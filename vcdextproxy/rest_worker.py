@@ -70,7 +70,9 @@ class RESTWorker(Thread):
             str: The full URL to request on backend.
         """
         full_req_path = conf(f"extensions.{self.extension_name}.backend.endpoint")
-        full_req_path += req_uri + "?" + query_string
+        full_req_path += req_uri
+        if query_string:
+            full_req_path += "?" + query_string
         return full_req_path
 
     def pre_checks(self):
