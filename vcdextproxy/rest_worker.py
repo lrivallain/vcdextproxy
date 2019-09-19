@@ -58,6 +58,9 @@ class RESTWorker(Thread):
         # parse information from vcd request metadata. Add them to request headers #10
         headers['org_id'] = vcd_data.get('org', '').split("urn:vcloud:org:")[1]
         headers['user_id'] = vcd_data.get('user', '').split("urn:vcloud:user:")[1]
+        # Content-Length contained multiple unmatching values #15
+        headers.pop('Content-Length', None)
+        headers.pop('content-length', None)
         logger.trivia("Headers (without rights): " + json.dumps(headers, indent=2))
         headers['user_rights'] = json.dumps(vcd_data.get('rights'))
         return headers
@@ -76,7 +79,7 @@ class RESTWorker(Thread):
         full_req_path += req_uri
         if query_string:
             full_req_path += "?" + query_string
-        # #14 - change the requested URI before sending to backend
+        # Change the requested URI before sending to backend #14
         if conf(f"{self.conf_path}.uri_replace", False):
             pattern = conf(f"{self.conf_path}.uri_replace.pattern", "")
             by = conf(f"{self.conf_path}.uri_replace.by", "")
