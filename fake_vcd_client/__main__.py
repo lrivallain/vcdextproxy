@@ -190,7 +190,7 @@ def main(host, username, password, no_verify):
         sleep(2)
         logger.info("Updating data in example2")
         print(json.dumps(
-            vcd_sess.delete('/api/this/is/1/test/example2/test/azerty', {}),
+            vcd_sess.put('/api/this/is/1/test/example2/test/azerty', hello_world),
             indent=2
         ))
         sleep(2)
