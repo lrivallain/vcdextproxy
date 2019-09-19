@@ -153,7 +153,7 @@ def main(host, username, password, no_verify, sleep):
     vcd_sess = VcdSession(host, username, password,
         api_version="31.0", verify_ssl=not no_verify)
     logger.info("List current orgs for the user")
-    for org in vcd_sess.get('/api/org').get("org", []):
+    for org in json.loads(vcd_sess.get('/api/org').content).get("org", []):
         print(json.dumps(org, indent=2))
     while True:
         logger.info("Requesting data from example1")
