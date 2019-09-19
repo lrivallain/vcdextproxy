@@ -138,7 +138,7 @@ def print_r(r):
         r.status_code,
         r.content[:40]
     ]
-    print(data.join("-"))
+    print("-".join(data))
 
 @click.command()
 @click.option('-h', '--host', help="vCD server to use", required=True)
