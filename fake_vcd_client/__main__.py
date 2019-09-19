@@ -136,7 +136,7 @@ def print_r(r):
         r.request.method,
         r.request.url,
         str(r.status_code),
-        str(r.content[:40])
+        str(r.content[:50]) + '...'
     ]
     print(" - ".join(data))
 
