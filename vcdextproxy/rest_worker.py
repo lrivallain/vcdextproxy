@@ -77,10 +77,10 @@ class RESTWorker(Thread):
             full_req_path += "?" + query_string
         # #14 - change the requested URI before sending to backend
         if conf(f"{self.conf_path}.uri_replace", False):
-            full_req_path.replace(
-                conf(f"{self.conf_path}.uri_replace.pattern", ""),
-                conf(f"{self.conf_path}.uri_replace.by", "")
-            )
+            pattern = conf(f"{self.conf_path}.uri_replace.pattern", "")
+            by = conf(f"{self.conf_path}.uri_replace.by", "")
+            logger.debug(f"URI replacement: {pattern} >> {by}")
+            full_req_path = full_req_path.replace(pattern, by)
         return full_req_path
 
     def pre_checks(self):
