@@ -105,7 +105,7 @@ class VcdSession():
 def main(host, username, password, no_verify):
     """Execute the client.
     """
-    vcd_sess = VcdSession(host, username password,
+    vcd_sess = VcdSession(host, username, password,
         api_version="31.0", verify_ssl=not no_verify)
     logger.info("List current orgs for the user")
     for org in vcd_sess.get('/api/org').get("org", []):
