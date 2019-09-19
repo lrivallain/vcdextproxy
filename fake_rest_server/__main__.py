@@ -24,12 +24,13 @@ api = Api(
 @api.route('/test/<string:path>')
 class RootApi(Resource):
     def get(self, path):
+        content = {'hello': 'world'}
         headers = dict(request.headers)
         # Content-Length contained multiple unmatching values #15
         headers.pop('Content-Length', None)
         headers.pop('content-length', None)
         h['X-FAKE-DATA'] = f'GET request on /test/{path}'
-        return {'hello': 'world'}, 200, headers
+        return {**content, **headers}, 200, headers
 
     def post(self, path):
         content = request.get_json(force=True, silent=False)
@@ -38,7 +39,7 @@ class RootApi(Resource):
         headers.pop('Content-Length', None)
         headers.pop('content-length', None)
         headers['X-FAKE-DATA'] = f'POST request on /test/{path}'
-        return content, 201, headers
+        return {**content, **headers}, 201, headers
 
     def put(self, path):
         content = request.get_json(force=True, silent=False)
@@ -47,8 +48,7 @@ class RootApi(Resource):
         headers.pop('Content-Length', None)
         headers.pop('content-length', None)
         headers['X-FAKE-DATA'] = f'PUT request on {path}'
-        print(json.dumps(headers, indent=2))
-        return content, 202, headers
+        return {**content, **headers}, 202, headers
 
     def delete(self, path):
         headers = dict(request.headers)
@@ -56,7 +56,7 @@ class RootApi(Resource):
         headers.pop('Content-Length', None)
         headers.pop('content-length', None)
         headers['X-FAKE-DATA'] = f'DELETE request on /test/{path}'
-        return {}, 202, headers
+        return {**content, **headers}, 201, headers
 
 
 
