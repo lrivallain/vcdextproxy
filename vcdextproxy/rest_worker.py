@@ -16,6 +16,8 @@ class RESTWorker(Thread):
     def __init__(self, extension, message_worker, data, message):
         Thread.__init__(self)
         self.extension_name = extension
+        # get config path for backend
+        self.conf_path = f"extensions.{self.extension_name}.backend"
         # enable to publish response from the worker
         self.message_worker = message_worker
         # content of the request message
@@ -36,10 +38,10 @@ class RESTWorker(Thread):
         Returns:
             HTTPBasicAuth: Auth context.
         """
-        if conf(f"extensions.{self.extension_name}.backend.auth", False):
+        if conf(f"{self.conf_path}.auth", False):
             return HTTPBasicAuth(
-                conf(f"extensions.{self.extension_name}.backend.username"),
-                conf(f"extensions.{self.extension_name}.backend.password")
+                conf(f"{self.conf_path}.username"),
+                conf(f"{self.conf_path}.password")
             )
         return None
 
@@ -69,10 +71,16 @@ class RESTWorker(Thread):
         Returns:
             str: The full URL to request on backend.
         """
-        full_req_path = conf(f"extensions.{self.extension_name}.backend.endpoint")
+        full_req_path = conf(f"{self.conf_path}.endpoint")
         full_req_path += req_uri
         if query_string:
             full_req_path += "?" + query_string
+        # #14 - change the requested URI before sending to backend
+        if conf(f"{self.conf_path}.uri_replace"):
+            full_req_path.replace(
+                conf(f"{self.conf_path}.uri_replace.pattern", ""),
+                conf(f"{self.conf_path}.uri_replace.by", "")
+            )
         return full_req_path
 
     def pre_checks(self):
@@ -110,7 +118,7 @@ class RESTWorker(Thread):
             data=body,
             auth=self.get_extension_auth(),
             headers=self.headers,
-            verify=conf(f"extensions.{self.extension_name}.backend.ssl_verify", True)
+            verify=conf(f"{self.conf_path}.ssl_verify", True)
         )
         # parse response
         try:
