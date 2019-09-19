@@ -26,6 +26,7 @@ extensions:
       auth: # basic auth
         username: rest_username
         password: "********"
+      timeout: 30
     amqp:
       routing_key: example1
       exchange:
@@ -46,6 +47,7 @@ extensions:
       auth: # basic auth
         username: rest_username
         password: "********"
+      timeout: 10
     amqp:
       routing_key: example2
       exchange:
