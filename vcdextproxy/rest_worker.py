@@ -173,7 +173,7 @@ class RESTWorker(Thread):
             rsp_body = {"Error": "RequestException from extension backend server"}
             status_code = 502
         except Exception as e:
-            self.log(error(f"Unmanaged error raised: {str, e)}", exc_info=1)
+            self.log(error(f"Unmanaged error raised: {str, e)}", exc_info=1))
             rsp_body = {"Error": "Unmanaged error raised"}
             status_code = 500
         self.reply(rsp_body, status_code)
