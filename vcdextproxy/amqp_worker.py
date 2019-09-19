@@ -94,7 +94,7 @@ class AMQPWorker(ConsumerMixin):
             )
             self.log_extension(
                 'debug', extension_name,
-                f"Preparing a new Queue object: " + conf(extension_conf_path + '.amqp.queue.name'
+                f"Preparing a new Queue object: " + conf(extension_conf_path + '.amqp.queue.name')
             )
             queue = Queue(
                 name=conf(extension_conf_path + '.amqp.queue.name'),
