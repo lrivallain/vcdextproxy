@@ -5,9 +5,10 @@ import logging
 import click
 import requests
 
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# pylint: disable=logging-fstring-interpolation
+logger = logging.getLogger(__name__)
 
 
 class VcdSession():
@@ -101,7 +102,7 @@ class VcdSession():
 @click.option('-h', '--host', help="vCD server to use", required=True)
 @click.option('-u', '--username', help="Username for vCD", required=True)
 @click.option('-p', '--password', help='Password for vCD user', required=True)
-@click.option('-k', '--no_verify', is_flag=False, help="Ignore SSL errors")
+@click.option('-k', '--no_verify', is_flag=True, help="Ignore SSL errors")
 def main(host, username, password, no_verify):
     """Execute the client.
     """
@@ -109,7 +110,7 @@ def main(host, username, password, no_verify):
         api_version="31.0", verify_ssl=not no_verify)
     logger.info("List current orgs for the user")
     for org in vcd_sess.get('/api/org').get("org", []):
-        print(org)
+        print(json.dumps(org, indent=2))
 
 
 if __name__ == '__main__':
