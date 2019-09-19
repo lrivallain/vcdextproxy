@@ -44,7 +44,7 @@ class RESTWorker(Thread):
         """
         _message = f"[{self.extension_name}] {str(message)}"
         try:
-            getattr(logger, level)(_message, args, kwargs)
+            getattr(logger, level)(_message) #, args, kwargs)
         except AttributeError as e:
             self.log("error", f"Invalid log level {level} used: please fix in code.")
             self.log("debug", message, *args, **kwargs) # loop with a sure status
