@@ -50,24 +50,23 @@ def read_configuration():
                 exit(-1)
 
 
-DEFAULT = object() # new unique object
-def get_configuration_item(configuration_item, default=DEFAULT):
+MANDATORY = object() # new unique object
+@cached(TTLCache(maxsize=1000, ttl=config_cache_expire)) # Set in cache for X secondes
+def get_configuration_item(configuration_item, default=MANDATORY):
     """Get a configuration setting.
 
     Args:
         configuration_item (str): Name of the setting to retrieve.
+        default (any): Default value to provide is nothing is found.
+        from_data (dict): a dict to parse for item instead of config file.
 
     Raise:
-        Exception: Missing mandatory configuration parameter.
+        KeyError: Missing mandatory configuration parameter.
 
     Returns:
         any: Configuration setting or the default value.
     """
     logger.trivia(f"Looking for configuration item: {configuration_item}")
-    if default is DEFAULT:
-        mandatory = True
-    else:
-        mandatory = False
     # Append an extra item to local configuration
     if configuration_item == 'global.config_path':
         return os.environ.get(env_setting_conf)
@@ -77,7 +76,7 @@ def get_configuration_item(configuration_item, default=DEFAULT):
         try:
             config_walker = config_walker[sub_item]
         except KeyError as e:
-            if mandatory: # badaboum!
+            if default is MANDATORY: # mandatory!
                 err_msg = f"Missing mandatory configuration parameter: {configuration_item}. "
                 err_msg += "Please refer to documentation."
                 logger.critical(err_msg)
