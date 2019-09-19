@@ -4,7 +4,7 @@ import json
 import logging
 import click
 import requests
-from time import sleep
+import time
 
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -48,6 +48,7 @@ class VcdSession():
             f"https://{self.hostname}{uri_path}",
             verify=self.verify_ssl
         )
+        print(r.status_code)
         if parse_out:
             return json.loads(r.content)
         else:
@@ -74,6 +75,7 @@ class VcdSession():
             verify=self.verify_ssl,
             data=data
         )
+        print(r.status_code)
         if parse_out:
             return json.loads(r.content)
         else:
@@ -100,6 +102,7 @@ class VcdSession():
             verify=self.verify_ssl,
             data=data
         )
+        print(r.status_code)
         if parse_out:
             return json.loads(r.content)
         else:
@@ -123,6 +126,7 @@ class VcdSession():
             f"https://{self.hostname}{uri_path}",
             verify=self.verify_ssl
         )
+        print(r.status_code)
         if parse_out:
             return json.loads(r.content)
         else:
@@ -152,7 +156,8 @@ class VcdSession():
 @click.option('-u', '--username', help="Username for vCD", required=True)
 @click.option('-p', '--password', help='Password for vCD user', required=True)
 @click.option('-k', '--no_verify', is_flag=True, help="Ignore SSL errors")
-def main(host, username, password, no_verify):
+@click.option('-s', '--sleep', default="1", help="Sleep time between requests")
+def main(host, username, password, no_verify, sleep):
     """Execute the client.
     """
     hello_world = {"hello": "world"}
@@ -166,31 +171,19 @@ def main(host, username, password, no_verify):
         print(json.dumps(
             vcd_sess.get('/api/example1/test/toto'), indent=2
         ))
-        sleep(2)
+        time.sleep(sleep)
         logger.info("Requesting data from example2")
-        print(json.dumps(
-            vcd_sess.get('/api/this/is/1/test/example2/test/azerty?toto'),
-            indent=2
-        ))
-        sleep(2)
+        vcd_sess.get('/api/this/is/1/test/example2/test/azerty?toto')
+        time.sleep(sleep)
         logger.info("Posting data to example1")
-        print(json.dumps(
-            vcd_sess.post('/api/example1/test/toto', hello_world),
-            indent=2
-        ))
-        sleep(2)
+        vcd_sess.post('/api/example1/test/toto', hello_world)
+        time.sleep(sleep)
         logger.info("Deleting data in example1")
-        print(json.dumps(
-            vcd_sess.delete('/api/example1/test/toto'),
-            indent=2
-        ))
-        sleep(2)
+        vcd_sess.delete('/api/example1/test/toto')
+        time.sleep(sleep)
         logger.info("Updating data in example2")
-        print(json.dumps(
-            vcd_sess.put('/api/this/is/1/test/example2/test/azerty', hello_world),
-            indent=2
-        ))
-        sleep(2)
+        vcd_sess.put('/api/this/is/1/test/example2/test/azerty', hello_world)
+        time.sleep(sleep)
 
 
 if __name__ == '__main__':
