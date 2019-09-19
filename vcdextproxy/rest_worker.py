@@ -69,7 +69,7 @@ class RESTWorker(Thread):
         Returns:
             str: The full URL to request on backend.
         """
-        full_req_path = conf(f"extensions.{self.extension_name}.backend.endoint")
+        full_req_path = conf(f"extensions.{self.extension_name}.backend.endpoint")
         full_req_path += req_uri + "?" + query_string
         return full_req_path
 
