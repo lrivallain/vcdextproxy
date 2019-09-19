@@ -54,10 +54,11 @@ class RESTWorker(Thread):
         # split request content from vcd context data
         vcd_data = self.request[1]
         req_data = self.request[0]
-        headers = headers = req_data.get('headers', {})
+        headers = dict(req_data.get('headers', {}))
         # parse information from vcd request metadata. Add them to request headers #10
         headers['org_id'] = vcd_data.get('org', '').split("urn:vcloud:org:")[1]
         headers['user_id'] = vcd_data.get('user', '').split("urn:vcloud:user:")[1]
+        logger.trivia("Headers (without rights): " + json.dumps(headers, indent=2))
         headers['user_rights'] = json.dumps(vcd_data.get('rights'))
         return headers
 
