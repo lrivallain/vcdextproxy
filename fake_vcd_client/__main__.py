@@ -135,10 +135,10 @@ def print_r(r):
     data = [
         r.request.method,
         r.request.url,
-        r.status_code,
+        str(r.status_code),
         r.content[:40]
     ]
-    print("-".join(data))
+    print(" - ".join(data))
 
 @click.command()
 @click.option('-h', '--host', help="vCD server to use", required=True)
