@@ -123,7 +123,7 @@ class RESTWorker(Thread):
         # prepare reply properties
         resp_prop = {
             "id": req_data['id'],
-            "accept": headers.get('Accept', None),
+            "accept": self.headers.get('Accept', None),
             "correlation_id": self.amqp_message.properties['correlation_id'],
             "reply_to": self.amqp_message.properties['reply_to'],
             "replyToExchange": self.amqp_message.headers['replyToExchange']
