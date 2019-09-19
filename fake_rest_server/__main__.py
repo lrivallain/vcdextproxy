@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from flask import Flask, request
 from flask_restplus import Api, Resource, fields, abort
-from .utils import configure_logger
 import logging
 import click
 
@@ -73,7 +72,6 @@ class RootApi(Resource):
 def main(host, port, debug):
     """Execute the REST APi.
     """
-    configure_logger()
     logger.info("Starting the REST APi...")
     app.run(debug=debug, host=host, port=port)
 
