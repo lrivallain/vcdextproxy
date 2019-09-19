@@ -181,7 +181,11 @@ class AMQPWorker(ConsumerMixin):
             data (str): JSON message body as a string.
             properties (str): JSON message metadata as a string.
         """
-        extension = self.registered_extensions.get(properties.get('routing_key'))
+        routing_key = properties.get('routing_key')
+        if not routing_key:
+            logger.error(f"Publisher: Missing original routing_key in the reply message properties")
+            return # Do nothing
+        extension = self.registered_extensions.get(routing_key)
         if not extension:
             logger.error(f"Publisher: Cannot found the configuration data for the routing_key {routing_key}")
             return # Do nothing
