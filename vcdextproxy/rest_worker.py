@@ -43,11 +43,14 @@ class RESTWorker(Thread):
             message (str): Message to log
         """
         _message = f"[{self.extension_name}] {message}"
-        try:
-            getattr(logger, level)(_message, args, kwargs)
-        except AttributeError as e:
-            logger.error("Invalid log level {level} used: please fix in code.")
-            self.log("debug", message, *args, **kwargs) # loop with a sure status
+        if level == 'trivia':
+            logger.trivia(_message, args, kwargs)
+        else:
+            try:
+                getattr(logger, level)(_message, args, kwargs)
+            except AttributeError as e:
+                logger.error("Invalid log level {level} used: please fix in code.")
+                self.log("debug", message, *args, **kwargs) # loop with a sure status
 
     def get_extension_auth(self):
         """Get the auth object if requested by extension.
