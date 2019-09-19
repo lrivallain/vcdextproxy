@@ -46,7 +46,7 @@ class RESTWorker(Thread):
         try:
             getattr(logger, level)(_message, args, kwargs)
         except AttributeError as e:
-            self.log("error", f"Invalid log level {level} used: please fix in code."
+            self.log("error", f"Invalid log level {level} used: please fix in code.")
             self.log("debug", message, *args, **kwargs) # loop with a sure status
 
     def get_extension_auth(self):
