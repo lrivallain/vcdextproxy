@@ -33,12 +33,11 @@ class VcdSession():
             'x-vcloud-authorization': self.get_auth_token(username, password),
         })
 
-    def get(self, uri_path, parse_out=True):
+    def get(self, uri_path):
         """Manage GET requests.
 
         Args:
             uri_path (str): path for the REST request.
-            parse_out (bool): does the output need to be parse as json?
 
         Returns:
             content of the response body (as interpreted json if possible).
@@ -48,20 +47,15 @@ class VcdSession():
             f"https://{self.hostname}{uri_path}",
             verify=self.verify_ssl
         )
-        print(r.status_code)
-        if parse_out:
-            return json.loads(r.content)
-        else:
-            return r.content
+        return r
 
-    def post(self, uri_path, data, content_type="application/json", parse_out=True):
+    def post(self, uri_path, data, content_type="application/json"):
         """Manage POST requests.
 
         Args:
             uri_path (str): path for the REST request.
             data (str): data to set as request body.
             content_type (Optional:str): a content type for the request.
-            parse_out (bool): does the output need to be parse as json?
 
         Returns:
             dict or str: content of the response body (as interpreted json if possible).
@@ -75,20 +69,15 @@ class VcdSession():
             verify=self.verify_ssl,
             data=data
         )
-        print(r.status_code)
-        if parse_out:
-            return json.loads(r.content)
-        else:
-            return r.content
+        return r
 
-    def put(self, uri_path, data, content_type="application/json", parse_out=True):
+    def put(self, uri_path, data, content_type="application/json"):
         """Manage PUT requests.
 
         Args:
             uri_path (str): path for the REST request.
             data (str): data to set as request body.
             content_type (Optional:str): a content type for the request.
-            parse_out (bool): does the output need to be parse as json?
 
         Returns:
             dict or str: content of the response body (as interpreted json if possible).
@@ -102,20 +91,15 @@ class VcdSession():
             verify=self.verify_ssl,
             data=data
         )
-        print(r.status_code)
-        if parse_out:
-            return json.loads(r.content)
-        else:
-            return r.content
+        return r
 
-    def delete(self, uri_path, content_type="application/json", parse_out=True):
+    def delete(self, uri_path, content_type="application/json"):
         """Manage DELETE requests.
 
         Args:
             uri_path (str): path for the REST request.
             data (str): data to set as request body.
             content_type (Optional:str): a content type for the request.
-            parse_out (bool): does the output need to be parse as json?
 
         Returns:
             dict or str: content of the response body (as interpreted json if possible).
@@ -126,11 +110,7 @@ class VcdSession():
             f"https://{self.hostname}{uri_path}",
             verify=self.verify_ssl
         )
-        print(r.status_code)
-        if parse_out:
-            return json.loads(r.content)
-        else:
-            return r.content
+        return r
 
     def get_auth_token(self, username, password):
         """Retrieve an auth token to authenticate user for further requests.
@@ -151,6 +131,15 @@ class VcdSession():
         return r.headers.get('x-vcloud-authorization', None)
 
 
+def print_r(r):
+    data = [
+        r.method,
+        r.request.url,
+        r.status_code,
+        r.content[:40]
+    ]
+    print(data.join("-"))
+
 @click.command()
 @click.option('-h', '--host', help="vCD server to use", required=True)
 @click.option('-u', '--username', help="Username for vCD", required=True)
@@ -168,19 +157,19 @@ def main(host, username, password, no_verify, sleep):
         print(json.dumps(org, indent=2))
     while True:
         logger.info("Requesting data from example1")
-        vcd_sess.get('/api/example1/test/toto')
+        print_r(vcd_sess.get('/api/example1/test/toto'))
         time.sleep(sleep)
         logger.info("Requesting data from example2")
-        vcd_sess.get('/api/this/is/1/test/example2/test/azerty?toto')
+        print_r(vcd_sess.get('/api/this/is/1/test/example2/test/azerty?toto'))
         time.sleep(sleep)
         logger.info("Posting data to example1")
-        vcd_sess.post('/api/example1/test/toto', hello_world)
+        print_r(vcd_sess.post('/api/example1/test/toto', hello_world))
         time.sleep(sleep)
         logger.info("Deleting data in example1")
-        vcd_sess.delete('/api/example1/test/toto')
+        print_r(vcd_sess.delete('/api/example1/test/toto'))
         time.sleep(sleep)
         logger.info("Updating data in example2")
-        vcd_sess.put('/api/this/is/1/test/example2/test/azerty', hello_world)
+        print_r(vcd_sess.put('/api/this/is/1/test/example2/test/azerty', hello_world))
         time.sleep(sleep)
 
 
