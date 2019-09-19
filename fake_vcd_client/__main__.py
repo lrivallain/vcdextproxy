@@ -168,9 +168,7 @@ def main(host, username, password, no_verify, sleep):
         print(json.dumps(org, indent=2))
     while True:
         logger.info("Requesting data from example1")
-        print(json.dumps(
-            vcd_sess.get('/api/example1/test/toto'), indent=2
-        ))
+        vcd_sess.get('/api/example1/test/toto')
         time.sleep(sleep)
         logger.info("Requesting data from example2")
         vcd_sess.get('/api/this/is/1/test/example2/test/azerty?toto')
