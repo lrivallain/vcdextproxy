@@ -19,6 +19,9 @@ extensions:
   example1:
     backend:
       endpoint: http://127.0.0.1:8881
+      uri_replace:
+        pattern: /api/example1/
+        by: ''
       ssl_verify: no
       auth: # basic auth
         username: rest_username
@@ -36,6 +39,9 @@ extensions:
   example2:
     backend:
       endpoint: http://127.0.0.1:8882
+      uri_replace:
+        pattern: /api/example1/
+        by: ''
       ssl_verify: no
       auth: # basic auth
         username: rest_username
