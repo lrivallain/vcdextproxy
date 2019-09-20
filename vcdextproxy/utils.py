@@ -1,9 +1,8 @@
-import logging
+#!/usr/bin/env python
+"""Define here some usefull functions
+"""
 import sys
 import traceback
-
-# name the logger for the current module
-logger = logging.getLogger(__name__)
 
 # managed unhandled Exceptions
 def vcdextproxy_excepthook(type, value, tb):

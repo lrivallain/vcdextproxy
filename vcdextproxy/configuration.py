@@ -2,8 +2,6 @@
 """Some tools to manage the configuration of the module.
 """
 
-"""The utils module is a set of functions used in multiple other STaaS functions.
-"""
 import logging.config
 import os
 import sys
@@ -13,9 +11,8 @@ from pathlib import Path
 import urllib3
 from cachetools import cached, TTLCache
 
-# name the logger for the current module
-logger = logging.getLogger(__name__)
 
+#TODO: avoid this kind of global variables
 env_setting_conf = "VCDEXTPROXY_CONFIGURATION_PATH"
 config_cache_expire = 300
 

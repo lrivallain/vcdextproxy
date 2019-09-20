@@ -1,18 +1,14 @@
 #!/usr/bin/env python
 """Main script to run a proxy that handle vCD extension AMQP messages.
 """
-import logging
 import signal
 import sys
 import os
 from kombu import Connection
-from .amqp_worker import AMQPWorker
-from .configuration import configure_logger, read_configuration, conf
-from .utils import signal_handler, vcdextproxy_excepthook
+from vcdextproxy import AMQPWorker
+from vcdextproxy.configuration import configure_logger, read_configuration, conf
+from vcdextproxy.utils import signal_handler, vcdextproxy_excepthook
 
-
-# name the logger for the current module
-logger = logging.getLogger(__name__)
 
 def main():
     """Execute the proxy worker.
