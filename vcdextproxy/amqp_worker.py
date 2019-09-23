@@ -12,6 +12,7 @@ from kombu.utils.debug import setup_logging as kombu_setup_logging
 from threading import BoundedSemaphore
 from vcdextproxy.configuration import conf
 from vcdextproxy.utils import logger
+from vcdextproxy import RestApiExtension
 
 
 # def amqp_errback(error, interval):
