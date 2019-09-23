@@ -4,6 +4,9 @@
 import sys
 import traceback
 
+import logging
+logger = logging.getLogger()
+
 # managed unhandled Exceptions
 def vcdextproxy_excepthook(type, value, tb):
     """Print the unhandled exceptions.
