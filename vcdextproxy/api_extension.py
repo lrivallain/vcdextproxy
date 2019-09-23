@@ -6,7 +6,7 @@ from vcdextproxy.configuration import conf
 from vcdextproxy.utils import logger
 
 
-class RestApiExtension():
+class RestApiExtension:
     """Define an extension object with its settings
     """
 
