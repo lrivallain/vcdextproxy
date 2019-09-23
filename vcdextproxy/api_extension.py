@@ -10,7 +10,7 @@ class RestApiExtension:
     """Define an extension object with its settings
     """
 
-    def init(self, extension_name):
+    def __init__(self, extension_name):
         """Initialize an extension object
 
         Args:
