@@ -43,9 +43,9 @@ class RestApiExtension:
         Returns:
             str: URL to use on the backend server.
         """
-        full_req_path = conf(f"{self.conf}.backend.endpoint")
+        full_req_path = self.conf(f"backend.endpoint")
         # Change the requested URI before sending to backend #14
-        if conf(f"{self.conf}.backend.uri_replace", False):
+        if self.conf(f"backend.uri_replace", False):
             pattern = self.conf(f"backend.uri_replace.pattern", "")
             by = self.conf(f"backend.uri_replace.by", "")
             self.log('debug', f"URI replacement: {pattern} >> {by}")
@@ -69,7 +69,7 @@ class RestApiExtension:
         Returns:
             HTTPBasicAuth: Auth context.
         """
-        if conf(f"{self.conf}.backend.auth", False):
+        if self.conf(f"backend.auth", False):
             return HTTPBasicAuth(
                 self.conf(f"backend.auth.username", ""),
                 self.conf(f"backend.auth.password", ""),
