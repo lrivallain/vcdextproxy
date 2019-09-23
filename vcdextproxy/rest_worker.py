@@ -26,10 +26,10 @@ class RESTWorker(Thread):
         # get message ID
         self.id = self.req_data['id']
         # get the current auth token
-        self.token = None
-        for header_key, header_value in self.headers.items():
-            if header_key.lower() == "x-vcloud-authorization" or header_key.lower() == "authorization" :
-                self.token = header_value
+        # self.token = None
+        # for header_key, header_value in self.headers.items():
+        #     if header_key.lower() == "x-vcloud-authorization" or header_key.lower() == "authorization" :
+        #         self.token = header_value
 
     def forge_headers(self):
         """Returns all the headers for requests to backend
