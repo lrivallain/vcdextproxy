@@ -8,9 +8,9 @@ if sys.version_info < (3, 6):
     raise Exception('vcdextproxy requires Python versions 3.6 or later.')
 
 # Import all
+from vcdextproxy.api_extension import RestApiExtension
 from vcdextproxy.rest_worker import RESTWorker
 from vcdextproxy.amqp_worker import AMQPWorker
-from vcdextproxy.api_extension import RestApiExtension
 from vcdextproxy import configuration
 from vcdextproxy import utils
 

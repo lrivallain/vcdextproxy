@@ -10,9 +10,7 @@ from kombu import Exchange, Queue, Connection
 from kombu.mixins import ConsumerMixin
 from kombu.utils.debug import setup_logging as kombu_setup_logging
 from threading import BoundedSemaphore
-from vcdextproxy import RESTWorker
 from vcdextproxy.configuration import conf
-from vcdextproxy import RestApiExtension
 
 
 # def amqp_errback(error, interval):
@@ -57,7 +55,7 @@ class AMQPWorker(ConsumerMixin):
         """
         consumers = []
         for extension_name in conf('extensions'):
-            extension = Extension(extension_name)
+            extension = RestApiExtension(extension_name)
             routing_key = extension.conf('amqp.routing_key')
             if routing_key in self.registered_extensions.keys():
                 # critical case: duplicate routing_key in configuration
