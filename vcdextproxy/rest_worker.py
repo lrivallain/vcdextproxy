@@ -25,11 +25,12 @@ class RESTWorker(Thread):
         self.amqp_message = message
         # get message ID
         self.id = self.req_data['id']
+        self.headers = self.forge_headers()
         # get the current auth token
-        # self.token = None
-        # for header_key, header_value in self.headers.items():
-        #     if header_key.lower() == "x-vcloud-authorization" or header_key.lower() == "authorization" :
-        #         self.token = header_value
+        self.token = None
+        for header_key, header_value in self.headers.items():
+            if header_key.lower() == "x-vcloud-authorization" or header_key.lower() == "authorization" :
+                self.token = header_value
 
     def forge_headers(self):
         """Returns all the headers for requests to backend
@@ -101,13 +102,13 @@ class RESTWorker(Thread):
         # forward the requests to the backend
         try:
             r = forward_request(
-                self.extension.get_full_url(
+                self.extension.get_url(
                     self.req_data.get('requestUri', ""),
                     self.req_data.get('queryString')
                 ),
                 data=body,
                 auth=self.extension.get_extension_auth(),
-                headers=self.forge_headers(),
+                headers=self.headers,
                 verify=self.extension.conf('backend.verify', True),
                 timeout=self.extension.conf('backend.timeout', 300) # by default 5 minutes timeout
             )
