@@ -23,8 +23,7 @@ def main():
     try:
         configure_logger()
     except Exception as e:
-        logger.error("Cannot configure the logger. Ensure settings are correct.")
-        logger.error(f"Error was: {str(e)}")
+        logger.exception("Cannot configure the logger. Ensure settings are correct.")
         exit(-1)
 
     # start

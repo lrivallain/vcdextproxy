@@ -43,7 +43,7 @@ def read_configuration():
                 logger.critical(f"YAML parser error when reading the configuration file: {str(e)}")
                 exit(-1)
             except Exception as e:
-                logger.critical(f"Unmanaged error raised: {str(e)}")
+                logger.exception(f"Unmanaged error raised: {str(e)}")
                 exit(-1)
 
 

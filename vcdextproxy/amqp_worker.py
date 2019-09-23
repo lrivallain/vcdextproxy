@@ -5,9 +5,11 @@
 import base64
 import sys
 import json
+from amqp.exceptions import PreconditionFailed
 from kombu import Exchange, Queue, Connection
 from kombu.mixins import ConsumerMixin
 from kombu.utils.debug import setup_logging as kombu_setup_logging
+from threading import BoundedSemaphore
 from vcdextproxy import RESTWorker
 from vcdextproxy.configuration import conf
 from vcdextproxy import RestApiExtension
@@ -63,12 +65,17 @@ class AMQPWorker(ConsumerMixin):
                 return None
             queue = extension.get_queue()
             if queue:
-                consumers.append(
-                    Consumer(
-                        queues=[queue],
-                        callbacks=[self.process_task]
+                try:
+                    consumers.append(
+                        Consumer(
+                            queues=[queue],
+                            callbacks=[self.process_task]
+                        )
                     )
-                )
+                except PreconditionFailed:
+                    logger.exception("Precondition error: Verify AMQP settings for {extension.name}")
+                except Exception as e:
+                    logger.exception("Unmanaged error detected.")
                 self.registered_extensions[routing_key] = extension
                 extension.log('info', f"New extension is registred.")
         logger.info("All extensions are now registred. Listening for incoming messages...")
@@ -104,16 +111,19 @@ class AMQPWorker(ConsumerMixin):
         # Acknowledge it
         # Getting the correct worker
         extension.log('debug', "Listener: Processing request message in a new thread...")
-        try:
-            thread = RESTWorker(
-                extension = extension,
-                message_worker = self,
-                data = json_payload,
-                message = message
-            )
-            thread.start()
-        except Exception as e:
-            extension.log('error', f"Listener: Task raised exception: {str(e)}", exc_info=1)
+        # Limit threads number #13
+        thread_limiter = BoundedSemaphore(value=conf('global.max_threads', 50))
+        with thread_limiter:
+            try:
+                thread = RESTWorker(
+                    extension = extension,
+                    message_worker = self,
+                    data = json_payload,
+                    message = message
+                )
+                thread.start()
+            except Exception as e:
+                extension.log('error', f"Listener: Task raised exception: {str(e)}", exc_info=1)
 
     def publish(self, data, properties):
         """Publish a message through the current connection.
