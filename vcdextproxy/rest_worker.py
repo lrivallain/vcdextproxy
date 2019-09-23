@@ -106,7 +106,7 @@ class RESTWorker(Thread):
                 ),
                 data=body,
                 auth=self.extension.get_extension_auth(),
-                headers=self.forge_headers()
+                headers=self.forge_headers(),
                 verify=self.extension.get_conf('backend.verify', True),
                 timeout=self.extension.get_conf('backend.timeout', 300) # by default 5 minutes timeout
             )
