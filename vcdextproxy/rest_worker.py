@@ -101,8 +101,8 @@ class RESTWorker(Thread):
         try:
             r = forward_request(
                 self.extension.get_full_url(
-                    full_req_path += self.req_data.get('requestUri', "")
-                    query_string = self.req_data.get('queryString')
+                    self.req_data.get('requestUri', ""),
+                    self.req_data.get('queryString')
                 ),
                 data=body,
                 auth=self.extension.get_extension_auth(),
