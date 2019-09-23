@@ -44,6 +44,8 @@ class AMQPWorker(ConsumerMixin):
         # Reduce logging from amqp module
         kombu_setup_logging(loglevel='INFO', loggers=['amqp'])
         self.registered_extensions = {} # keep extensions
+        # Limit threads number #13
+        self.thread_limiter = BoundedSemaphore(value=conf('global.max_threads', 10))
 
     def get_consumers(self, Consumer, channel):
         """Return the consumer objects.
@@ -108,12 +110,11 @@ class AMQPWorker(ConsumerMixin):
         except ValueError:
             extension.log('warning', f"Listener: Invalid JSON data received: rejecting the message\n{body}")
             return
-        # Acknowledge it
+        logger.trivia("Available threads to manage the request: {self.thread_limiter._value}")
         # Getting the correct worker
         extension.log('debug', "Listener: Processing request message in a new thread...")
         # Limit threads number #13
-        thread_limiter = BoundedSemaphore(value=conf('global.max_threads', 50))
-        with thread_limiter:
+        with self.thread_limiter:
             try:
                 thread = RESTWorker(
                     extension = extension,
