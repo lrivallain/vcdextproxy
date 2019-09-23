@@ -17,7 +17,7 @@ class RestApiExtension:
             extension_name (str): Name of the extension
         """
         self.name = extension_name
-        self.conf = f'extensions.{extension_name}'
+        self.conf_path = f'extensions.{extension_name}'
 
     def log(self, level, message, *args, **kwargs):
         """Log a information about this extension by adding a prefix
@@ -46,8 +46,8 @@ class RestApiExtension:
         full_req_path = conf(f"{self.conf}.backend.endpoint")
         # Change the requested URI before sending to backend #14
         if conf(f"{self.conf}.backend.uri_replace", False):
-            pattern = conf(f"{self.conf}.backend.uri_replace.pattern", "")
-            by = conf(f"{self.conf}.backend.uri_replace.by", "")
+            pattern = self.conf(f"backend.uri_replace.pattern", "")
+            by = self.conf(f"backend.uri_replace.by", "")
             self.log('debug', f"URI replacement: {pattern} >> {by}")
             uri_path = uri_path.replace(pattern, by)
         full_req_path += uri_path
@@ -55,13 +55,13 @@ class RestApiExtension:
             full_req_path += "?" + query_string
         return full_req_path
 
-    def get_conf(self, item, default=None):
+    def conf(self, item, default=None):
         """Returns configuration value for this extension.
 
         Returns:
             any: The value for the requested item.
         """
-        return conf(f"{self.conf}.{item}", default)
+        return conf(f"{self.conf_path}.{item}", default)
 
     def get_extension_auth(self):
         """Get the auth object if requested by extension.
@@ -71,8 +71,8 @@ class RestApiExtension:
         """
         if conf(f"{self.conf}.backend.auth", False):
             return HTTPBasicAuth(
-                conf(f"{self.conf}.backend.auth.username", ""),
-                conf(f"{self.conf}.backend.auth.password", ""),
+                self.conf(f"backend.auth.username", ""),
+                self.conf(f"backend.auth.password", ""),
             )
         return None
 
