@@ -7,7 +7,7 @@ import os
 from kombu import Connection
 from vcdextproxy import AMQPWorker
 from vcdextproxy.configuration import configure_logger, read_configuration, conf
-from vcdextproxy.utils import signal_handler, vcdextproxy_excepthook
+from vcdextproxy.utils import signal_handler, vcdextproxy_excepthook, logger
 
 
 def main():

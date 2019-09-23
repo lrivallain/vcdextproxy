@@ -9,6 +9,7 @@ import json
 from threading import Thread
 from requests.auth import HTTPBasicAuth
 from vcdextproxy.configuration import conf
+from vcdextproxy.utils import logger
 
 
 class RESTWorker(Thread):

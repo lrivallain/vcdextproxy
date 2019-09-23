@@ -3,6 +3,7 @@
 """
 from kombu import Exchange, Queue
 from vcdextproxy.configuration import conf
+from vcdextproxy.utils import logger
 
 
 class RestApiExtension():

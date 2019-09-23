@@ -10,6 +10,7 @@ import yaml
 from pathlib import Path
 import urllib3
 from cachetools import cached, TTLCache
+from vcdextproxy.utils import logger
 
 
 #TODO: avoid this kind of global variables

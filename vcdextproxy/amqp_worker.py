@@ -11,6 +11,7 @@ from kombu.mixins import ConsumerMixin
 from kombu.utils.debug import setup_logging as kombu_setup_logging
 from threading import BoundedSemaphore
 from vcdextproxy.configuration import conf
+from vcdextproxy.utils import logger
 
 
 # def amqp_errback(error, interval):
