@@ -32,7 +32,7 @@ class RestApiExtension():
             self.log("error", f"Invalid log level {level} used: please fix in code.")
             self.log("debug", message, *args, **kwargs)  # loop with a sure status
 
-    def self.get_url(self, uri_path, query_string=None):
+    def get_url(self, uri_path, query_string=None):
         """Return URL for this extension
 
         Args:
