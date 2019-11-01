@@ -24,6 +24,7 @@ extensions:
         pattern: /api/example1/
         by: ''
       ssl_verify: no
+      forward_rights: yes
       auth: # basic auth
         username: rest_username
         password: "********"
@@ -38,6 +39,8 @@ extensions:
         name: example1
         message_ttl: 40000
       declare: no
+    validate_org_membership: yes
+    reference_right: "UI Plugins: View"
   example2:
     backend:
       endpoint: http://127.0.0.1:8882
@@ -45,6 +48,7 @@ extensions:
         pattern: /api/example1/
         by: ''
       ssl_verify: no
+      forward_rights: no
       auth: # basic auth
         username: rest_username
         password: "********"
@@ -57,3 +61,5 @@ extensions:
         name: example2
         message_ttl: 40
       declare: no
+    validate_org_membership: yes
+    reference_right: no

@@ -10,6 +10,7 @@ import json
 from threading import Thread
 from vcdextproxy.configuration import conf
 from vcdextproxy.utils import logger
+from vcdextproxy.vcd_utils import VcdSession
 
 
 class RESTWorker(Thread):
@@ -52,7 +53,20 @@ class RESTWorker(Thread):
     def pre_checks(self):
         """Run some pre-checks like checking rights.
         """
-        #TODO: check rights + org membership
+        #TODO: check rights
+        if self.extension.conf('validate_org_membership'):
+            vcd_sess = VcdSession(
+                hostname=conf('global.vcloud.hostname'),
+                token=self.token,
+                api_version=conf('global.vcloud.api_version'),
+                ssl_verify=conf('global.vcloud.ssl_verify')
+            )
+            org_id = self.headers.get('org_id')
+            if not vcd_sess.is_org_member(org_id):
+                err_msg = f"The current user is not member of the org with id: {org_id}"
+                self.extension.log('error', err_msg)
+                self.reply({"forbidden": err_msg}, "403")
+                return False
         return True
 
     def reply(self, rsp_body, status_code):
@@ -86,7 +100,7 @@ class RESTWorker(Thread):
         body = base64.b64decode(self.req_data.get('body', ''))
         # search the current auth token in headers
         if not self.pre_checks():
-            raise Exception("Pre check error") #TODO: Do better exceptions
+            return # already replyed
         # search the appropriate requests attr
         try:
             method = self.req_data.get('method', 'get').lower()
