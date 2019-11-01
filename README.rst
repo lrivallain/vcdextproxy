@@ -16,7 +16,7 @@ vcdextproxy
 
 
 
-A python based proxy looking at multiple AMQP queues for incoming requests of VMware vCloud Director's API Extensions
+Python based proxy looking at multiple AMQP queues for incoming requests of VMware vCloud Director's API Extensions and forwarding to specified REST backends.
 
 * Free software: MIT license
 * Documentation: https://vcdextproxy.readthedocs.io.
