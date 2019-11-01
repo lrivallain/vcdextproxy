@@ -2,6 +2,7 @@
 """RestApiExtension defines the settings of a single REST API extension unit for vCD.
 """
 from kombu import Exchange, Queue
+from requests.auth import HTTPBasicAuth
 from vcdextproxy.configuration import conf
 from vcdextproxy.utils import logger
 

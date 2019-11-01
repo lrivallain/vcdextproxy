@@ -15,17 +15,6 @@ from vcdextproxy.utils import logger
 from vcdextproxy import RestApiExtension, RESTWorker
 
 
-# def amqp_errback(error, interval):
-#     """Provide custom error callback on amqp connection status
-
-#     Args:
-#         error (Exception): The raised error
-#         interval (int): Time interval between retries
-#     """
-#     logger.error(f"Error: {error}", exc_info=1)
-#     logger.info(f"Retry in {interval} seconds.")
-
-
 class AMQPWorker(ConsumerMixin):
     """kombu.ConsumerMixin based object.
 
@@ -46,6 +35,7 @@ class AMQPWorker(ConsumerMixin):
         self.registered_extensions = {} # keep extensions
         # Limit threads number #13
         self.thread_limiter = BoundedSemaphore(value=conf('global.max_threads', 10))
+        self.nb_requests_managed = 0
 
     def get_consumers(self, Consumer, channel):
         """Return the consumer objects.
@@ -90,6 +80,8 @@ class AMQPWorker(ConsumerMixin):
             body (str): JSON message body as a string.
             message (str): JSON message metadata as a string.
         """
+        self.thread_limiter.acquire()
+        logger.trivia(f"Available threads to manage the request: {self.thread_limiter._value}")
         try:
             message.ack()
         except ConnectionResetError:
@@ -110,21 +102,20 @@ class AMQPWorker(ConsumerMixin):
         except ValueError:
             extension.log('warning', f"Listener: Invalid JSON data received: rejecting the message\n{body}")
             return
-        logger.trivia("Available threads to manage the request: {self.thread_limiter._value}")
         # Getting the correct worker
         extension.log('debug', "Listener: Processing request message in a new thread...")
         # Limit threads number #13
-        with self.thread_limiter:
-            try:
-                thread = RESTWorker(
-                    extension = extension,
-                    message_worker = self,
-                    data = json_payload,
-                    message = message
-                )
-                thread.start()
-            except Exception as e:
-                extension.log('error', f"Listener: Task raised exception: {str(e)}", exc_info=1)
+        try:
+            thread = RESTWorker(
+                extension = extension,
+                message_worker = self,
+                data = json_payload,
+                message = message
+            )
+            thread.start()
+        except Exception as e:
+            extension.log('error', f"Listener: Task raised exception: {str(e)}", exc_info=1)
+            self.thread_limiter.release()
 
     def publish(self, data, properties):
         """Publish a message through the current connection.
@@ -140,6 +131,7 @@ class AMQPWorker(ConsumerMixin):
         extension = self.registered_extensions.get(routing_key)
         if not extension:
             logger.error(f"Publisher: Cannot found the configuration data for the routing_key {routing_key}")
+            self.thread_limiter.release()
             return # Do nothing
         extension.log('info', f"Publisher: Reply with routing_key {routing_key} is received. Sending a message to MQ....")
         rqueue = Queue(
@@ -180,3 +172,6 @@ class AMQPWorker(ConsumerMixin):
             extension.log('info', "Publisher: Response sent to MQ")
         except ConnectionResetError:
             extension.log('error', "Publisher: ConnectionResetError: message may be not sent...")
+        finally:
+            self.thread_limiter.release()
+        self.nb_requests_managed += 1

@@ -3,16 +3,17 @@
 """
 
 import base64
+import gzip
 import json
 import requests
 import json
 from threading import Thread
-from requests.auth import HTTPBasicAuth
 from vcdextproxy.configuration import conf
 from vcdextproxy.utils import logger
 
 
 class RESTWorker(Thread):
+
     def __init__(self, extension, message_worker, data, message):
         Thread.__init__(self)
         self.extension = extension
@@ -43,7 +44,9 @@ class RESTWorker(Thread):
         headers['org_id'] = self.vcd_data.get('org', '').split("urn:vcloud:org:")[1]
         headers['user_id'] = self.vcd_data.get('user', '').split("urn:vcloud:user:")[1]
         self.extension.log('trivia', "Headers (without rights): " + json.dumps(headers, indent=2))
-        headers['user_rights'] = json.dumps(self.vcd_data.get('rights'))
+        if self.extension.conf('backend.forward_rights', False):
+            self.extension.log('debug', "Including vCD rights as new header `user_rights`")
+            headers['user_rights'] = json.dumps(self.vcd_data.get('rights'))
         return headers
 
     def pre_checks(self):
@@ -86,10 +89,12 @@ class RESTWorker(Thread):
             raise Exception("Pre check error") #TODO: Do better exceptions
         # search the appropriate requests attr
         try:
+            method = self.req_data.get('method', 'get').lower()
+            self.extension.log('trivia', f"Locking for method: {method}")
             # Get the requests function based on the requested method
             forward_request = getattr(
                 requests,
-                self.req_data.get('method', 'get').lower()
+                method
             )
         except AttributeError as e:
             self.extension.log('error', f"The method {method} is not supported.")
@@ -101,15 +106,17 @@ class RESTWorker(Thread):
             raise e # raise other errors as usual
         # forward the requests to the backend
         try:
+            uri = self.extension.get_url(
+                self.req_data.get('requestUri', ""),
+                self.req_data.get('queryString')
+            )
+            self.extension.log('info', f"Forwarding request {method.upper()} - {uri}")
             r = forward_request(
-                self.extension.get_url(
-                    self.req_data.get('requestUri', ""),
-                    self.req_data.get('queryString')
-                ),
+                uri,
                 data=body,
                 auth=self.extension.get_extension_auth(),
                 headers=self.headers,
-                verify=self.extension.conf('backend.verify', True),
+                verify=self.extension.conf('backend.ssl_verify', True),
                 timeout=self.extension.conf('backend.timeout', 300) # by default 5 minutes timeout
             )
             rsp_body = r.text
@@ -123,7 +130,7 @@ class RESTWorker(Thread):
             rsp_body = {"Error": "TooManyRedirects from extension backend server"}
             status_code = 508
         except requests.exceptions.ConnectionError as e:
-            self.extension.log('warning', "ConnectionError from the extension backend server")
+            self.extension.log('warning', f"ConnectionError from the extension backend server: {str(e)}")
             rsp_body = {"Error": "ConnectionError from the extension backend server"}
             status_code = 503
         except requests.exceptions.RequestException as e:

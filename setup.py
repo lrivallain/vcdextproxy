@@ -1,38 +1,51 @@
-from distutils.core import setup
-import setuptools
-import vcdextproxy
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-try:
-    with open("README.md", "r") as fh:
-        long_description = fh.read()
-except FileNotFoundError:
-    long_description = "" # empty
-except Exception as e:
-    raise e
+"""The setup script."""
+
+from setuptools import setup, find_packages
+
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
+
+with open('HISTORY.rst') as history_file:
+    history = history_file.read()
+
+requirements = [ ]
+
+setup_requirements = ['pytest-runner', ]
+
+test_requirements = ['pytest>=3', ]
 
 setup(
-    name='vcdextproxy',
-    version=vcdextproxy.__version__,
     author="Ludovic Rivallain",
-    author_email='ludovic.rivallain+vcdextproxy@gmail.com',
-    packages=setuptools.find_packages(),
-    description="An AMQP to REST proxy for VMware vCloud Director Extensions",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    install_requires=[
-        "kombu",
-        "coloredlogs",
-        "requests",
-        "cachetools"
-    ],
+    author_email='ludovic.rivallain@gmail.com',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        "Programming Language :: Python :: 2",
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8', 'Operating System :: Unix',
-        'Operating System :: POSIX :: Linux',
-        "License :: OSI Approved :: MIT License", "Environment :: Console"
+        'Programming Language :: Python :: 3.8',
     ],
-    entry_points={
-        'console_scripts': [
-            'vcdextproxy=vcdextproxy.__main__:main',
-        ],
-    })
+    description="A python based proxy looking at multiple AMQP queues for incoming requests of VMware vCloud Director's API Extensions",
+    install_requires=requirements,
+    license="MIT license",
+    long_description=readme + '\n\n' + history,
+    include_package_data=True,
+    keywords='vcdextproxy',
+    name='vcdextproxy',
+    packages=find_packages(include=['vcdextproxy', 'vcdextproxy.*']),
+    setup_requires=setup_requirements,
+    test_suite='tests',
+    tests_require=test_requirements,
+    url='https://github.com/lrivallain/vcdextproxy',
+    version='0.1.0',
+    zip_safe=False,
+)
