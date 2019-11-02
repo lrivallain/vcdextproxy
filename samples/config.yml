@@ -3,7 +3,9 @@ global:
     hostname: vcdservername
     username: login
     password: "********"
-    api_version: 31
+    api_version: "33.0"
+    ssl_verify: yes
+    cache_timeout: 300
   log:
     config_file: logging.json
   amqp:

@@ -64,7 +64,7 @@ def get_configuration_item(configuration_item, default=MANDATORY):
     Returns:
         any: Configuration setting or the default value.
     """
-    logger.trivia(f"Looking for configuration item: {configuration_item}")
+    logger.debug(f"Looking for configuration item: {configuration_item}")
     # Append an extra item to local configuration
     if configuration_item == 'global.config_path':
         return os.environ.get(env_setting_conf)

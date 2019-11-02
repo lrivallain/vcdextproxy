@@ -5,6 +5,7 @@ from kombu import Exchange, Queue
 from requests.auth import HTTPBasicAuth
 from vcdextproxy.configuration import conf
 from vcdextproxy.utils import logger
+from vcdextproxy.vcd_utils import get_vcd_rights
 
 
 class RestApiExtension:
@@ -19,6 +20,7 @@ class RestApiExtension:
         """
         self.name = extension_name
         self.conf_path = f'extensions.{extension_name}'
+        self.ref_right_id = self.get_reference_right()
 
     def log(self, level, message, *args, **kwargs):
         """Log a information about this extension by adding a prefix
@@ -100,3 +102,17 @@ class RestApiExtension:
         )
         self.log('debug', f"Adding a new process task as callback for incoming messages")
         return queue
+
+    def get_reference_right(self):
+        """Get the ID of the reference right set in the configuration
+        """
+        if not self.conf('reference_right', False):
+            return False
+        else:
+            for instance_right in get_vcd_rights(self.name):
+                if instance_right['name'] == self.conf('reference_right'):
+                    return instance_right['id']
+            if not ref_right_id:
+                self.log('error', "Invalid reference right `{self.conf('reference_right')}` configured for the extension.")
+                # Return a fake ID to force errors when checking user's rights
+                return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"

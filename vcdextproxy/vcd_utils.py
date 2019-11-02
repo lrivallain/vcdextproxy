@@ -4,20 +4,20 @@ import json
 import requests
 from vcdextproxy.utils import logger
 from vcdextproxy.configuration import conf
+from cachetools import cached, TTLCache
 
 class VcdSession():
     """Manage a vCD Session to proceed API requests with an auth context.
     """
 
-    def __init__(
-            self,
-            hostname: str,
-            username: str=None,
-            password: str=None,
-            token: str=None,
-            api_version: str="33.0",
-            ssl_verify: bool=True
-        ):
+    def __init__(self,
+        hostname: str,
+        username: str = None,
+        password: str = None,
+        token: str = None,
+        api_version: str = "33.0",
+        ssl_verify: bool = True,
+        logger_prefix: str = ""):
         """Create a new connector to a vCD.
 
         Args:
@@ -27,41 +27,57 @@ class VcdSession():
             token (str, optional): An existing auth session token. Defaults to None.
             api_version (str, optional): API version to use (depends on your vCD version). Defaults to "33.0".
             verify_ssl (bool, optional): Check SSL certificates? Defaults to True.
+            logger_prefix (str, optionnal): A prefix for logging purpose
         """
+        self.logger_prefix = logger_prefix
         if not (username and password) and not token:
-            logger.error("At least one of username+password or token is mandatory to initiate a new session.")
+            self.log('error', "At least one of username+password or token is mandatory to initiate a new session.")
             return None
         self.hostname = hostname
         self.api_version = api_version
         self.ssl_verify = ssl_verify
         self.session = requests.session()
+        self.session.headers.update(
+            {'Accept': f"application/*+json;version={api_version}"})
         if not token:
-            logger.info(f"Starting a fresh session for on username {username}")
+            self.log('info', f"Starting a fresh session for on username {username}")
             token = self.generate_auth_token(username, password)
         else:
-            logger.info("Reusing an exisiting session with provided token")
-        self.update_headers(token, api_version)
+            self.log('info', "Reusing an exisiting session with provided token")
+        self.update_headers(token)
 
-    def update_headers(self, token: str, api_version):
+    def log(self, level, message, *args, **kwargs):
+        """Log a information about this object by adding a prefix
+
+        Args:
+            level (str): Log level for the information
+            message (str): Message to log
+        """
+        _message = f"[{self.logger_prefix}] {str(message)}"
+        try:
+            getattr(logger, level)(_message)  #, args, kwargs)
+        except AttributeError as e:
+            self.log("error", f"Invalid log level {level} used: please fix in code.")
+            self.log("debug", message, *args, **kwargs) # loop with a sure status
+
+    def update_headers(self, token: str):
         """Update headers for the current vCD session context.
 
         Args:
             token (str): Auth token used in the session.
         """
         if "Bearer" in token:
-            logger.debug(f"Use Bearer token auth method")
+            self.log('debug', f"Use Bearer token auth method")
             self.session.headers.update({
                 'Authorization': token,
             })
         else:
-            logger.debug(f"Use x-vcloud-authorization token auth method")
+            self.log('debug', f"Use x-vcloud-authorization token auth method")
             self.session.headers.update({
                 'x-vcloud-authorization': token,
             })
-        self.session.headers.update(
-            {'Accept': f"application/*+json;version={api_version}"})
 
-    def get(self, uri_path: str, parse_out: bool=True):
+    def get(self, uri_path: str, parse_out: bool=True, full_return: bool=False):
         """Manage GET requests within a vCD Session context.
 
         Args:
@@ -70,24 +86,30 @@ class VcdSession():
 
         Returns:
             dict or str: Content of the response body (as interpreted json if possible).
+            full_return (bool, optionnal): return the full response object? Default to False.
         """
-        logger.info(f"New request to vCD: {uri_path}")
+        self.log('info', f"New request to vCD: {uri_path}")
         r = self.session.get(
             f"https://{self.hostname}{uri_path}",
             verify=self.ssl_verify
         )
         if int(r.status_code) >= 300:
-            logger.error(f"Invalid response code received {r.status_code} with content: {r.content}")
+            self.log('error', f"Invalid response code received {r.status_code} with content: {r.content}")
+            if full_return:
+                return r
             if parse_out:
                 return {} # Empty answer
             else:
                 return ""  # Empty answer
+        if full_return:
+            return r
         if parse_out:
             return json.loads(r.content)
         else:
             return r.content
 
-    def post(self, uri_path: str, data: str, content_type: str="application/json", parse_out: bool=True):
+    def post(self, uri_path: str, data: str, content_type: str="application/json",
+        parse_out: bool=True, full_return: bool=False):
         """Manage POST requests within a vCD Session context.
 
         Args:
@@ -95,11 +117,12 @@ class VcdSession():
             data (str): data to set as request body.
             content_type (str, optionnal): a content-type for the request. Defaults to "application/json"
             parse_out (bool, optionnal): does the output need to be parse as json? Defaults to True.
+            full_return (bool, optionnal): return the full response object? Default to False.
 
         Returns:
             dict or str: Content of the response body (as interpreted json if possible).
         """
-        logger.info(f"New POST request to VCD API: {uri_path}")
+        self.log('info', f"New POST request to VCD API: {uri_path}")
         self.session.headers["Content-Type"] = content_type
         if content_type == "application/json":
             data = json.dumps(data)
@@ -109,11 +132,15 @@ class VcdSession():
             data=data
         )
         if int(r.status_code) >= 300:
-            logger.error(f"Invalid response code received {r.status_code} with content: {r.content}")
+            self.log('error', f"Invalid response code received {r.status_code} with content: {r.content}")
+            if full_return:
+                return r
             if parse_out:
                 return {} # Empty answer
             else:
                 return ""  # Empty answer
+        if full_return:
+            return r
         if parse_out:
             return json.loads(r.content)
         else:
@@ -130,10 +157,10 @@ class VcdSession():
             str: A x-vcloud-authorization token.
         """
         self.session.auth = (username, password)
-        r = self.session.post(
-            f"https://{self.hostname}/api/sessions",
-            verify=self.ssl_verify,
-            data=None
+        r = self.post(
+            f"/api/sessions",
+            data=None,
+            full_return=True
         )
         return r.headers.get('x-vcloud-authorization', None)
 
@@ -150,7 +177,7 @@ class VcdSession():
                 'name': org['name'].lower()
             }
             orgs.append(valid_org)
-        logger.trivia(f"Organizations for the current user: " + json.dumps(orgs, indent=2))
+        self.log('trivia', f"Organizations for the current user: " + json.dumps(orgs, indent=2))
         return orgs
 
     def is_org_member(self, org_id: str):
@@ -162,10 +189,53 @@ class VcdSession():
         Returns:
             bool: Is the current user a member of the organization ?
         """
-        logger.debug(f"Checking is current user is member of the org with id {org_id}")
+        self.log('debug', f"Checking is current user is member of the org with id {org_id}")
         membership = any(org['id'] == org_id for org in self.list_organizations_membership())
         if not membership:
-            logger.warning(f"Current user is not a member of org with id {org_id}")
+            self.log('warning', f"Current user is not a member of org with id {org_id}")
         else:
-            logger.debug(f"Current user is a member of org with id {org_id}")
+            self.log('debug', f"Current user is a member of org with id {org_id}")
         return membership
+
+    def has_right(self, user_rights: str, ref_right_id: str):
+        """Does the user of the current session have the reference right ?
+
+        Args:
+            user_rights (list): List of the user rights
+            ref_right_id (str): Reference right id
+        """
+        for right in user_rights:
+            if ref_right_id in right:
+                self.log('debug', f"Current user has the reference right.")
+                return True
+        self.log('warning', f"Current user does not have the reference right.")
+        return False
+
+
+@cached(TTLCache(maxsize=1000, ttl=conf("global.vcloud.cache_timeout")))
+def get_vcd_rights(extension_name):
+    """List the rights existing on this vCD instance.
+
+    Args:
+        extension_name (str): Name of the current extension
+    """
+    vcd_sess = VcdSession(
+        hostname=conf('global.vcloud.hostname'),
+        username=conf('global.vcloud.username'),
+        password=conf('global.vcloud.password'),
+        api_version=conf('global.vcloud.api_version'),
+        ssl_verify=conf('global.vcloud.ssl_verify'),
+        logger_prefix=extension_name
+    )
+    rights = []
+    for org in vcd_sess.list_organizations_membership():
+        if org['name'].lower() == 'system':
+            rights_path = f"/api/admin/org/{org['id']}/rights"
+            for right in vcd_sess.get(rights_path).get("rightReference", []):
+                rights.append({
+                    'id': right['href'].split('/')[-1],
+                    'name': right['name']
+                })
+            return rights
+    logger.error("[{extension_name}] Only members of the System organization can list the existings rights.")
+    return rights
