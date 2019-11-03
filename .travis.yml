@@ -6,7 +6,8 @@ python:
   - 3.6
 
 env:
-   - VCDEXTPROXY_CONFIGURATION_PATH="$TRAVIS_BUILD_DIR/samples/"
+  global:
+    - VCDEXTPROXY_CONFIGURATION_PATH="$TRAVIS_BUILD_DIR/samples/"
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -U tox-travis
