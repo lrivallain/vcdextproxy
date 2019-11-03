@@ -13,7 +13,9 @@ vcdextproxy
         :target: https://vcdextproxy.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-
+.. image:: https://img.shields.io/github/license/lrivallain/vcdextproxy
+        :target: https://opensource.org/licenses/MIT
+        :alt: MIT License
 
 
 Python based proxy looking at multiple AMQP queues for incoming requests of VMware vCloud Director's API Extensions and forwarding to specified REST backends.

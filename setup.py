@@ -15,7 +15,8 @@ requirements = [
     "kombu",
     "coloredlogs",
     "requests",
-    "cachetools"
+    "cachetools",
+    "PyYAML"
 ]
 
 setup_requirements = [
