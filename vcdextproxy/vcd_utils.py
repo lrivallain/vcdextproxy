@@ -146,6 +146,77 @@ class VcdSession():
         else:
             return r.content
 
+    def put(self, uri_path: str, data: str, content_type: str="application/json",
+        parse_out: bool=True, full_return: bool=False):
+        """Manage PUT requests within a vCD Session context.
+
+        Args:
+            uri_path (str): path for the REST request.
+            data (str): data to set as request body.
+            content_type (str, optionnal): a content-type for the request. Defaults to "application/json"
+            parse_out (bool, optionnal): does the output need to be parse as json? Defaults to True.
+            full_return (bool, optionnal): return the full response object? Default to False.
+
+        Returns:
+            dict or str: Content of the response body (as interpreted json if possible).
+        """
+        self.log('info', f"New PUT request to VCD API: {uri_path}")
+        self.session.headers["Content-Type"] = content_type
+        if content_type == "application/json":
+            data = json.dumps(data)
+        r = self.session.put(
+            f"https://{self.hostname}{uri_path}",
+            verify=self.ssl_verify,
+            data=data
+        )
+        if int(r.status_code) >= 300:
+            self.log('error', f"Invalid response code received {r.status_code} with content: {r.content}")
+            if full_return:
+                return r
+            if parse_out:
+                return {} # Empty answer
+            else:
+                return ""  # Empty answer
+        if full_return:
+            return r
+        if parse_out:
+            return json.loads(r.content)
+        else:
+            return r.content
+
+    def delete(self, uri_path: str, parse_out: bool=True, full_return: bool=False):
+        """Manage DELETE requests within a vCD Session context.
+
+        Args:
+            uri_path (str): path for the REST request.
+            data (str): data to set as request body.
+            content_type (str, optionnal): a content-type for the request. Defaults to "application/json"
+            parse_out (bool, optionnal): does the output need to be parse as json? Defaults to True.
+            full_return (bool, optionnal): return the full response object? Default to False.
+
+        Returns:
+            dict or str: Content of the response body (as interpreted json if possible).
+        """
+        self.log('info', f"New DELETE request to VCD API: {uri_path}")
+        r = self.session.delete(
+            f"https://{self.hostname}{uri_path}",
+            verify=self.ssl_verify,
+        )
+        if int(r.status_code) >= 300:
+            self.log('error', f"Invalid response code received {r.status_code} with content: {r.content}")
+            if full_return:
+                return r
+            if parse_out:
+                return {} # Empty answer
+            else:
+                return ""  # Empty answer
+        if full_return:
+            return r
+        if parse_out:
+            return json.loads(r.content)
+        else:
+            return r.content
+
     def generate_auth_token(self, username: str, password: str):
         """Retrieve an auth token to authenticate user for further requests.
 
@@ -212,6 +283,23 @@ class VcdSession():
         return False
 
 
+    def query(self, type: str, format: str="records", filter: str="", page: int=1):
+        """Exceute a typed query on vCD session
+
+        Args:
+            type (str): Type of object to retrieve
+            format (str, optional): Return format. Defaults to "records".
+            filter (str, optional): Filter for the query. Defaults to "".
+        """
+        uri = f"/api/query?type={type}&format={format}"
+        uri += f"&page={page}&filterEncoded=true&filter={filter}"
+        data = self.get(uri)
+        if format == "records":
+            return data.get("record")
+        else:
+            return data
+
+
 @cached(TTLCache(maxsize=1000, ttl=conf("global.vcloud.cache_timeout")))
 def get_vcd_rights(extension_name):
     """List the rights existing on this vCD instance.
@@ -224,7 +312,7 @@ def get_vcd_rights(extension_name):
         username=conf('global.vcloud.username'),
         password=conf('global.vcloud.password'),
         api_version=conf('global.vcloud.api_version'),
-        ssl_verify=conf('global.vcloud.ssl_verify'),
+        ssl_verify=conf('global.vcloud.ssl_verify', True),
         logger_prefix=extension_name
     )
     rights = []

@@ -53,15 +53,14 @@ class RESTWorker(Thread):
     def pre_checks(self):
         """Run some pre-checks like checking rights.
         """
-        #TODO: check rights
         vcd_sess = VcdSession(
             hostname=conf('global.vcloud.hostname'),
             token=self.token,
             api_version=conf('global.vcloud.api_version'),
-            ssl_verify=conf('global.vcloud.ssl_verify'),
+            ssl_verify=conf('global.vcloud.ssl_verify', True),
             logger_prefix=self.extension.name
         )
-        if self.extension.conf('validate_org_membership'):
+        if self.extension.conf('vcloud.validate_org_membership'):
             org_id = self.headers.get('org_id')
             if not vcd_sess.is_org_member(org_id):
                 err_msg = f"The current user is not member of the org with id: {org_id}"
@@ -70,7 +69,7 @@ class RESTWorker(Thread):
                 return False
         if self.extension.ref_right_id:
             if not vcd_sess.has_right(self.vcd_data.get('rights'), self.extension.ref_right_id):
-                err_msg = f"The current user does not have the requested right: {self.extension.conf('reference_right')}"
+                err_msg = f"The current user does not have the requested right: {self.extension.conf('vcloud.reference_right')}"
                 self.extension.log('error', err_msg)
                 self.reply({"forbidden": err_msg}, "403")
                 return False

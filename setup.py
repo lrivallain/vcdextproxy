@@ -11,30 +11,36 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [ ]
+requirements = [
+    "kombu",
+    "coloredlogs",
+    "requests",
+    "cachetools"
+]
 
-setup_requirements = ['pytest-runner', ]
+setup_requirements = [
+    'pytest-runner'
+]
 
-test_requirements = ['pytest>=3', ]
+test_requirements = [
+    'pytest>=3'
+]
 
 setup(
     author="Ludovic Rivallain",
     author_email='ludovic.rivallain@gmail.com',
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires='>=3.6',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    description="A python based proxy looking at multiple AMQP queues for incoming requests of VMware vCloud Director's API Extensions",
+    description=
+    "A python based proxy looking at multiple AMQP queues for incoming requests of VMware vCloud Director's API Extensions",
     install_requires=requirements,
     license="MIT license",
     long_description=readme + '\n\n' + history,
@@ -48,4 +54,9 @@ setup(
     url='https://github.com/lrivallain/vcdextproxy',
     version='0.1.0',
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'vcdextproxy=vcdextproxy.__main__:main',
+        ],
+    }
 )

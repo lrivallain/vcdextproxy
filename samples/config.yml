@@ -41,8 +41,16 @@ extensions:
         name: example1
         message_ttl: 40000
       declare: no
-    validate_org_membership: yes
-    reference_right: "UI Plugins: View"
+    vcloud:
+      api_extension:
+        namespace: example1
+        exchange: ExchangeTest1
+        routing_key: example1
+        api_filters:
+          - '/api/example1/test/.*'
+        force_redeploy: no
+      validate_org_membership: yes
+      reference_right: "UI Plugins: View"
   example2:
     backend:
       endpoint: http://127.0.0.1:8882
@@ -63,5 +71,13 @@ extensions:
         name: example2
         message_ttl: 40
       declare: no
-    validate_org_membership: yes
-    reference_right: no
+    vcloud:
+      api_extension:
+        namespace: example2
+        exchange: ExchangeTest2
+        routing_key: example2
+        api_filters:
+          - '/api/this/is/1/test/example2/.*/.*'
+        force_redeploy: yes
+      validate_org_membership: yes
+      reference_right: no
