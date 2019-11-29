@@ -9,8 +9,8 @@ vcdextproxy
 .. image:: https://img.shields.io/travis/lrivallain/vcdextproxy.svg
         :target: https://travis-ci.org/lrivallain/vcdextproxy
 
-.. image:: https://img.shields.io/github/workflow/status/lrivallain/vcdextproxy/Tests
-        :target: https://github.com/lrivallain/vcdextproxy/actions?query=workflow%3ATests
+.. image:: https://img.shields.io/github/workflow/status/lrivallain/vcdextproxy/Test%20with%20tox
+        :target: https://github.com/lrivallain/vcdextproxy/actions?query=workflow%3ATest+with+tox
 
 .. image:: https://readthedocs.org/projects/vcdextproxy/badge/?version=latest
         :target: https://vcdextproxy.readthedocs.io/en/latest/?badge=latest
