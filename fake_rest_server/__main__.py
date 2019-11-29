@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from flask import Flask, request
-from flask_restplus import Api, Resource, fields, abort
+from flask_restplus import Api, Resource
 import logging
 import click
 
@@ -59,22 +59,22 @@ class RootApi(Resource):
         return {**content, **headers}, 201, headers
 
 
-
 @click.command()
 @click.option('-h', '--host', default="127.0.0.1",
-    help="Bind server to a specific interface"
-)
+              help="Bind server to a specific interface"
+              )
 @click.option('-p', '--port', default="5000",
-    help='Bind server to a specific port'
-)
+              help='Bind server to a specific port'
+              )
 @click.option('-v', '--debug', is_flag=True,
-    help="Enable Flask debug mode"
-)
+              help="Enable Flask debug mode"
+              )
 def main(host, port, debug):
     """Execute the REST APi.
     """
     logger.info("Starting the REST APi...")
     app.run(debug=debug, host=host, port=port)
+
 
 if __name__ == '__main__':
     main()

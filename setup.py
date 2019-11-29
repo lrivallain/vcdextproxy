@@ -27,6 +27,9 @@ test_requirements = [
     'pytest>=3'
 ]
 
+description = "A python based proxy looking at multiple AMQP queues "
+description += "for incoming requests of VMware vCloud Director's API Extensions"
+
 setup(
     author="Ludovic Rivallain",
     author_email='ludovic.rivallain@gmail.com',
@@ -40,8 +43,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    description=
-    "A python based proxy looking at multiple AMQP queues for incoming requests of VMware vCloud Director's API Extensions",
+    description=description,
     install_requires=requirements,
     license="MIT license",
     long_description=readme + '\n\n' + history,

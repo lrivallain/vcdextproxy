@@ -4,7 +4,8 @@
 """Tests for `vcdextproxy` package."""
 
 import pytest
-import vcdextproxy
+# import vcdextproxy
+
 
 @pytest.fixture
 def response():

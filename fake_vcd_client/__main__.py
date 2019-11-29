@@ -17,7 +17,7 @@ class VcdSession():
     """
 
     def __init__(self, hostname, username, password,
-        api_version="31.0", verify_ssl=True):
+                 api_version="31.0", verify_ssl=True):
 
         """Create a new connector to a vCD.
         """
@@ -140,6 +140,7 @@ def print_r(r):
     ]
     print(" >> ".join(data))
 
+
 @click.command()
 @click.option('-h', '--host', help="vCD server to use", required=True)
 @click.option('-u', '--username', help="Username for vCD", required=True)
@@ -151,7 +152,7 @@ def main(host, username, password, no_verify, sleep):
     """
     hello_world = {"hello": "world"}
     vcd_sess = VcdSession(host, username, password,
-        api_version="31.0", verify_ssl=not no_verify)
+                          api_version="31.0", verify_ssl=not no_verify)
     logger.info("List current orgs for the user")
     for org in json.loads(vcd_sess.get('/api/org').content).get("org", []):
         print(json.dumps(org, indent=2))
