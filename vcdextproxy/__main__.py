@@ -22,7 +22,7 @@ def main():
     # Setup logger
     try:
         configure_logger()
-    except Exception as e:
+    except Exception:
         logger.exception("Cannot configure the logger. Ensure settings are correct.")
         exit(-1)
 

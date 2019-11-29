@@ -33,8 +33,8 @@ class RestApiExtension:
         """
         _message = f"[{self.name}] {str(message)}"
         try:
-            getattr(logger, level)(_message)  #, args, kwargs)
-        except AttributeError as e:
+            getattr(logger, level)(_message)
+        except AttributeError:
             self.log("error", f"Invalid log level {level} used: please fix in code.")
             self.log("debug", message, *args, **kwargs)  # loop with a sure status
 
@@ -87,7 +87,7 @@ class RestApiExtension:
         routing_key = self.conf('amqp.routing_key')
         self.log('info', f"Initializating a new listener.")
         self.log('debug',
-            f"Preparing a new Exchange object: " + self.conf('amqp.exchange.name'))
+                 f"Preparing a new Exchange object: " + self.conf('amqp.exchange.name'))
         exchange = Exchange(
             name=self.conf('amqp.exchange.name'),
             type=self.conf('amqp.exchange.type', 'topic'),
@@ -114,10 +114,13 @@ class RestApiExtension:
             for instance_right in get_vcd_rights(self.name):
                 if instance_right['name'] == self.conf('vcloud.reference_right'):
                     return instance_right['id']
-            if not ref_right_id:
-                self.log('error', f"Invalid reference right `{self.conf('vcloud.reference_right')}` configured for the extension.")
-                # Return a fake ID to force errors when checking user's rights
-                return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            # If not already found: error
+            self.log(
+                'error',
+                f"Invalid reference right `{self.conf('vcloud.reference_right')}` configured for the extension."
+            )
+            # Return a fake ID to force errors when checking user's rights
+            return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
     def initialize_on_vcloud(self):
         """Check/initialize the deployment of extension on vCloud.
@@ -152,7 +155,7 @@ class RestApiExtension:
         if (not current_ext_on_vcd) or self.conf('vcloud.api_extension.force_redeploy'):
             current_ext_on_vcd = self.register_extension(vcd_sess, xml_data)
             if not current_ext_on_vcd:
-                return # error already logged
+                return  # error already logged
         if not current_ext_on_vcd.get('enabled'):
             self.log('warning', "This extension is not enabled on vCloud.")
 
@@ -166,12 +169,15 @@ class RestApiExtension:
         self.log('info', f"Registering extension {self.name} as a new vCD API extension.")
         ext_data = vcd_sess.post(
             "/api/admin/extension/service",
-            data = xml_data,
-            content_type = "application/vnd.vmware.admin.service+xml",
-            full_return = True
+            data=xml_data,
+            content_type="application/vnd.vmware.admin.service+xml",
+            full_return=True
         )
         if ext_data.status_code >= 300:
-            self.log('error', f"Error HTTP/{ext_data.status_code} when registering the new extension. Please check your settings.")
+            self.log(
+                'error',
+                f"Error HTTP/{ext_data.status_code} when registering the new extension. Please check your settings."
+            )
             self.log('debug', ext_data.content)
             return None
         else:
@@ -196,17 +202,20 @@ class RestApiExtension:
         ext_href = "/api/" + ext_href.split('/api/')[1]  # remove hostname part
         ext_data = vcd_sess.delete(
             ext_href,
-            full_return = True
+            full_return=True
         )
         if ext_data.status_code >= 300:
-            self.log('error', f"Error HTTP/{ext_data.status_code} when registering the new extension. Please check your settings.")
+            self.log(
+                'error',
+                f"Error HTTP/{ext_data.status_code} when registering the new extension. Please check your settings."
+            )
             self.log('debug', ext_data.content)
             return None
         else:
             self.log('trivia', ext_data.content)
             return None
 
-    #TODO : not updating ApiFilter...
+    # TODO : not updating ApiFilter...
     def update_extension(self, vcd_sess: VcdSession, xml_data: str, ext_href: str):
         """Update an existing extension in vCloud Director.
 
@@ -216,18 +225,21 @@ class RestApiExtension:
             ext_href (str): URI for the extension in API
         """
         self.log('info', f"Updating extension {self.name} vCD API extension.")
-        ext_href = "/api/" + ext_href.split('/api/')[1] # remove hostname part
+        ext_href = "/api/" + ext_href.split('/api/')[1]  # remove hostname part
         ext_data = vcd_sess.put(
             ext_href,
             data=xml_data,
             content_type="application/vnd.vmware.admin.service+xml",
             full_return=True)
         if ext_data.status_code >= 300:
-            self.log('error', f"Error HTTP/{ext_data.status_code} when updating the new extension. Please check your settings.")
+            self.log(
+                'error',
+                f"Error HTTP/{ext_data.status_code} when updating the new extension. Please check your settings."
+            )
             self.log('debug', ext_data.content)
             return None
         else:
-            self.log('trivia',json.dumps(json.loads(ext_data.content), indent=2))
+            self.log('trivia', json.dumps(json.loads(ext_data.content), indent=2))
             return json.loads(ext_data.content)
 
     def generate_xml4ext(self):

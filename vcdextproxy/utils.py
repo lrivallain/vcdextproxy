@@ -8,6 +8,8 @@ import logging
 logger = logging.getLogger()
 
 # managed unhandled Exceptions
+
+
 def vcdextproxy_excepthook(type, value, tb):
     """Print the unhandled exceptions.
     """
@@ -17,9 +19,11 @@ def vcdextproxy_excepthook(type, value, tb):
     logger.warning(f"############### End of Traceback ################")
 
 # Manage clean exit
+
+
 def signal_handler(signal, frame):
     """Handle a Keyboard Interrupt to leave rabbitMQ connection.
     """
-    sys.stdout.write('\b\b\r') # hide the ^C
+    sys.stdout.write('\b\b\r')  # hide the ^C
     logger.info("SIGINT signal catched -> Exiting...")
     sys.exit(0)

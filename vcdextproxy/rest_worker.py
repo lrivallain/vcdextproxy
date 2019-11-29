@@ -3,13 +3,10 @@
 """
 
 import base64
-import gzip
 import json
 import requests
-import json
 from threading import Thread
 from vcdextproxy.configuration import conf
-from vcdextproxy.utils import logger
 from vcdextproxy.vcd_utils import VcdSession
 
 
@@ -31,7 +28,7 @@ class RESTWorker(Thread):
         # get the current auth token
         self.token = None
         for header_key, header_value in self.headers.items():
-            if header_key.lower() == "x-vcloud-authorization" or header_key.lower() == "authorization" :
+            if header_key.lower() == "x-vcloud-authorization" or header_key.lower() == "authorization":
                 self.token = header_value
 
     def forge_headers(self):
@@ -69,7 +66,8 @@ class RESTWorker(Thread):
                 return False
         if self.extension.ref_right_id:
             if not vcd_sess.has_right(self.vcd_data.get('rights'), self.extension.ref_right_id):
-                err_msg = f"The current user does not have the requested right: {self.extension.conf('vcloud.reference_right')}"
+                err_msg = "The current user does not have the requested right:"
+                err_msg += f" {self.extension.conf('vcloud.reference_right')}"
                 self.extension.log('error', err_msg)
                 self.reply({"forbidden": err_msg}, "403")
                 return False
@@ -88,7 +86,7 @@ class RESTWorker(Thread):
         if isinstance(rsp_body, dict):
             rsp_body = json.dumps(rsp_body)
         resp_prop = {
-            "routing_key": self.amqp_message.delivery_info['routing_key'], # for mapping in amqp/publisher
+            "routing_key": self.amqp_message.delivery_info['routing_key'],  # for mapping in amqp/publisher
             "id": self.id,
             "accept": self.headers.get('Accept', None),
             "correlation_id": self.amqp_message.properties['correlation_id'],
@@ -106,7 +104,7 @@ class RESTWorker(Thread):
         body = base64.b64decode(self.req_data.get('body', ''))
         # search the current auth token in headers
         if not self.pre_checks():
-            return # already replyed
+            return  # already replyed
         # search the appropriate requests attr
         try:
             method = self.req_data.get('method', 'get').lower()
@@ -116,14 +114,14 @@ class RESTWorker(Thread):
                 requests,
                 method
             )
-        except AttributeError as e:
+        except AttributeError:
             self.extension.log('error', f"The method {method} is not supported.")
             rsp_body = {"Error": f"The method {method} is not supported."}
             status_code = 405
             self.reply(rsp_body, status_code)
         except Exception as e:
             self.extension.log('error', f"Unmanaged error raised: {str(e)}")
-            raise e # raise other errors as usual
+            raise e  # raise other errors as usual
         # forward the requests to the backend
         try:
             uri = self.extension.get_url(
@@ -137,7 +135,7 @@ class RESTWorker(Thread):
                 auth=self.extension.get_extension_auth(),
                 headers=self.headers,
                 verify=self.extension.conf('backend.ssl_verify', True),
-                timeout=self.extension.conf('backend.timeout', 300) # by default 5 minutes timeout
+                timeout=self.extension.conf('backend.timeout', 300)  # by default 5 minutes timeout
             )
             rsp_body = r.text
             status_code = r.status_code
@@ -153,7 +151,7 @@ class RESTWorker(Thread):
             self.extension.log('warning', f"ConnectionError from the extension backend server: {str(e)}")
             rsp_body = {"Error": "ConnectionError from the extension backend server"}
             status_code = 503
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             self.extension.log('warning', "RequestException from extension backend server")
             rsp_body = {"Error": "RequestException from extension backend server"}
             status_code = 502

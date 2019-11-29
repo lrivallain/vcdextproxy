@@ -3,10 +3,9 @@
 """
 
 import base64
-import sys
 import json
 from amqp.exceptions import PreconditionFailed
-from kombu import Exchange, Queue, Connection
+from kombu import Exchange, Queue
 from kombu.mixins import ConsumerMixin
 from kombu.utils.debug import setup_logging as kombu_setup_logging
 from threading import BoundedSemaphore
@@ -32,7 +31,7 @@ class AMQPWorker(ConsumerMixin):
         self.connection = connection
         # Reduce logging from amqp module
         kombu_setup_logging(loglevel='INFO', loggers=['amqp'])
-        self.registered_extensions = {} # keep extensions
+        self.registered_extensions = {}  # keep extensions
         # Limit threads number #13
         self.thread_limiter = BoundedSemaphore(value=conf('global.max_threads', 10))
         self.nb_requests_managed = 0
@@ -66,7 +65,7 @@ class AMQPWorker(ConsumerMixin):
                     )
                 except PreconditionFailed:
                     logger.exception("Precondition error: Verify AMQP settings for {extension.name}")
-                except Exception as e:
+                except Exception:
                     logger.exception("Unmanaged error detected.")
                 self.registered_extensions[routing_key] = extension
                 extension.log('info', f"New extension is registred.")
@@ -91,8 +90,8 @@ class AMQPWorker(ConsumerMixin):
         extension = self.registered_extensions.get(routing_key)
         if not extension:
             logger.error(f"Listener: Cannot found the configuration data for the routing_key {routing_key}")
-            message.requeue() # reject and sent it back to server
-            return # Do nothing
+            message.requeue()  # reject and sent it back to server
+            return  # Do nothing
         extension.log('info', f"Listener: Message with routing_key '{routing_key}' is received.")
         # Parsing JSON
         try:
@@ -107,10 +106,10 @@ class AMQPWorker(ConsumerMixin):
         # Limit threads number #13
         try:
             thread = RESTWorker(
-                extension = extension,
-                message_worker = self,
-                data = json_payload,
-                message = message
+                extension=extension,
+                message_worker=self,
+                data=json_payload,
+                message=message
             )
             thread.start()
         except Exception as e:
@@ -127,20 +126,25 @@ class AMQPWorker(ConsumerMixin):
         routing_key = properties.get('routing_key')
         if not routing_key:
             logger.error(f"Publisher: Missing original routing_key in the reply message properties")
-            return # Do nothing
+            return  # Do nothing
         extension = self.registered_extensions.get(routing_key)
         if not extension:
-            logger.error(f"Publisher: Cannot found the configuration data for the routing_key {routing_key}")
+            logger.error(
+                f"Publisher: Cannot found the configuration data for the routing_key {routing_key}"
+            )
             self.thread_limiter.release()
-            return # Do nothing
-        extension.log('info', f"Publisher: Reply with routing_key {routing_key} is received. Sending a message to MQ....")
+            return  # Do nothing
+        extension.log(
+            'info',
+            f"Publisher: Reply with routing_key {routing_key} is received. Sending a message to MQ...."
+        )
         rqueue = Queue(
             properties.get('reply_to'),
             Exchange(
                 properties.get("replyToExchange"),
                 'direct',
                 durable=True,
-                no_declare=True # we consider it as already available
+                no_declare=True  # we consider it as already available
             ),
             routing_key=properties.get('reply_to'),
             no_declare=True
@@ -148,12 +152,12 @@ class AMQPWorker(ConsumerMixin):
         if properties.get("encode", True):
             rsp_body = (base64.b64encode(data.encode('utf-8'))).decode()
         else:
-            rsp_body = (base64.b64encode(data)).decode() # raw data
+            rsp_body = (base64.b64encode(data)).decode()  # raw data
         rsp_msg = {
             'id': properties.get('id', None),
             'headers': {
                 'Content-Type': properties.get(
-                    "Content-Type", "application/*+json;version=31.0" # default
+                    "Content-Type", "application/*+json;version=31.0"  # default
                 ),
                 'Content-Length': len(data)
             },
@@ -166,8 +170,8 @@ class AMQPWorker(ConsumerMixin):
                 correlation_id=properties.get('correlation_id'),
                 routing_key=rqueue.routing_key,
                 exchange=rqueue.exchange,
-                retry = True,
-                expiration = 10000 # 10 seconds
+                retry=True,
+                expiration=10000  # 10 seconds
             )
             extension.log('info', "Publisher: Response sent to MQ")
         except ConnectionResetError:

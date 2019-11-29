@@ -7,18 +7,17 @@ import os
 import sys
 import json
 import yaml
-from pathlib import Path
 import urllib3
 from cachetools import cached, TTLCache
 from vcdextproxy.utils import logger
 
 
-#TODO: avoid this kind of global variables
+# TODO: avoid this kind of global variables
 env_setting_conf = "VCDEXTPROXY_CONFIGURATION_PATH"
 config_cache_expire = 300
 
 
-@cached(TTLCache(maxsize=1000, ttl=config_cache_expire)) # Set in cache for X secondes
+@cached(TTLCache(maxsize=1000, ttl=config_cache_expire))  # Set in cache for X secondes
 def read_configuration():
     """Test environment settings and import config.
 
@@ -48,8 +47,8 @@ def read_configuration():
                 exit(-1)
 
 
-MANDATORY = object() # new unique object
-@cached(TTLCache(maxsize=1000, ttl=config_cache_expire)) # Set in cache for X secondes
+MANDATORY = object()  # new unique object
+@cached(TTLCache(maxsize=1000, ttl=config_cache_expire))  # Set in cache for X secondes
 def get_configuration_item(configuration_item, default=MANDATORY):
     """Get a configuration setting.
 
@@ -74,7 +73,7 @@ def get_configuration_item(configuration_item, default=MANDATORY):
         try:
             config_walker = config_walker[sub_item]
         except KeyError as e:
-            if default is MANDATORY: # mandatory!
+            if default is MANDATORY:  # mandatory!
                 err_msg = f"Missing mandatory configuration parameter: {configuration_item}. "
                 err_msg += "Please refer to documentation."
                 logger.critical(err_msg)

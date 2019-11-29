@@ -6,18 +6,19 @@ from vcdextproxy.utils import logger
 from vcdextproxy.configuration import conf
 from cachetools import cached, TTLCache
 
+
 class VcdSession():
     """Manage a vCD Session to proceed API requests with an auth context.
     """
 
     def __init__(self,
-        hostname: str,
-        username: str = None,
-        password: str = None,
-        token: str = None,
-        api_version: str = "33.0",
-        ssl_verify: bool = True,
-        logger_prefix: str = ""):
+                 hostname: str,
+                 username: str = None,
+                 password: str = None,
+                 token: str = None,
+                 api_version: str = "33.0",
+                 ssl_verify: bool = True,
+                 logger_prefix: str = ""):
         """Create a new connector to a vCD.
 
         Args:
@@ -55,10 +56,10 @@ class VcdSession():
         """
         _message = f"[{self.logger_prefix}] {str(message)}"
         try:
-            getattr(logger, level)(_message)  #, args, kwargs)
-        except AttributeError as e:
+            getattr(logger, level)(_message)  # , args, kwargs)
+        except AttributeError:
             self.log("error", f"Invalid log level {level} used: please fix in code.")
-            self.log("debug", message, *args, **kwargs) # loop with a sure status
+            self.log("debug", message, *args, **kwargs)  # loop with a sure status
 
     def update_headers(self, token: str):
         """Update headers for the current vCD session context.
@@ -77,7 +78,7 @@ class VcdSession():
                 'x-vcloud-authorization': token,
             })
 
-    def get(self, uri_path: str, parse_out: bool=True, full_return: bool=False):
+    def get(self, uri_path: str, parse_out: bool = True, full_return: bool = False):
         """Manage GET requests within a vCD Session context.
 
         Args:
@@ -98,7 +99,7 @@ class VcdSession():
             if full_return:
                 return r
             if parse_out:
-                return {} # Empty answer
+                return {}  # Empty answer
             else:
                 return ""  # Empty answer
         if full_return:
@@ -108,8 +109,8 @@ class VcdSession():
         else:
             return r.content
 
-    def post(self, uri_path: str, data: str, content_type: str="application/json",
-        parse_out: bool=True, full_return: bool=False):
+    def post(self, uri_path: str, data: str, content_type: str = "application/json",
+             parse_out: bool = True, full_return: bool = False):
         """Manage POST requests within a vCD Session context.
 
         Args:
@@ -136,7 +137,7 @@ class VcdSession():
             if full_return:
                 return r
             if parse_out:
-                return {} # Empty answer
+                return {}  # Empty answer
             else:
                 return ""  # Empty answer
         if full_return:
@@ -146,8 +147,8 @@ class VcdSession():
         else:
             return r.content
 
-    def put(self, uri_path: str, data: str, content_type: str="application/json",
-        parse_out: bool=True, full_return: bool=False):
+    def put(self, uri_path: str, data: str, content_type: str = "application/json",
+            parse_out: bool = True, full_return: bool = False):
         """Manage PUT requests within a vCD Session context.
 
         Args:
@@ -174,7 +175,7 @@ class VcdSession():
             if full_return:
                 return r
             if parse_out:
-                return {} # Empty answer
+                return {}  # Empty answer
             else:
                 return ""  # Empty answer
         if full_return:
@@ -184,7 +185,7 @@ class VcdSession():
         else:
             return r.content
 
-    def delete(self, uri_path: str, parse_out: bool=True, full_return: bool=False):
+    def delete(self, uri_path: str, parse_out: bool = True, full_return: bool = False):
         """Manage DELETE requests within a vCD Session context.
 
         Args:
@@ -207,7 +208,7 @@ class VcdSession():
             if full_return:
                 return r
             if parse_out:
-                return {} # Empty answer
+                return {}  # Empty answer
             else:
                 return ""  # Empty answer
         if full_return:
@@ -282,8 +283,7 @@ class VcdSession():
         self.log('warning', f"Current user does not have the reference right.")
         return False
 
-
-    def query(self, type: str, format: str="records", filter: str="", page: int=1):
+    def query(self, type: str, format: str = "records", filter: str = "", page: int = 1):
         """Exceute a typed query on vCD session
 
         Args:
