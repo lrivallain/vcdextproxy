@@ -12,12 +12,12 @@ import sys
 if sys.version_info < (3, 6):
     raise Exception('vcdextproxy requires Python versions 3.6 or later.')
 
-# Import all
-# from vcdextproxy.api_extension import RestApiExtension
-# from vcdextproxy.rest_worker import RESTWorker
-# from vcdextproxy.amqp_worker import AMQPWorker
-# from vcdextproxy import configuration
-# from vcdextproxy import utils
+# Import all submodules
+from vcdextproxy.api_extension import RestApiExtension  # noqa: E402, F401
+from vcdextproxy.rest_worker import RESTWorker  # noqa: E402, F401
+from vcdextproxy.amqp_worker import AMQPWorker  # noqa: E402, F401
+from vcdextproxy import configuration  # noqa: E402, F401
+from vcdextproxy import utils  # noqa: E402, F401
 
 # name the logger for the current module
 logger = logging.getLogger(__name__)
