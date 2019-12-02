@@ -3,10 +3,12 @@
 """
 from kombu import Exchange, Queue
 import json
+import sys
 from requests.auth import HTTPBasicAuth
 from vcdextproxy.configuration import conf
 from vcdextproxy.utils import logger
-from vcdextproxy.vcd_utils import VcdSession, get_vcd_rights
+from vcdextproxy.vcd_utils import list_rights_available_in_vcd, login_as_system_admin
+from pyvcloud.vcd.api_extension import APIExtension
 
 
 class RestApiExtension:
@@ -82,7 +84,7 @@ class RestApiExtension:
         return None
 
     def get_queue(self):
-        """Return a Queue subscribtion for the extension
+        """Returns a Queue subscribtion for the extension
         """
         routing_key = self.conf('amqp.routing_key')
         self.log('info', f"Initializating a new listener.")
@@ -111,9 +113,9 @@ class RestApiExtension:
         if not self.conf('vcloud.reference_right', False):
             return False
         else:
-            for instance_right in get_vcd_rights(self.name):
+            for instance_right in list_rights_available_in_vcd(self.name):
                 if instance_right['name'] == self.conf('vcloud.reference_right'):
-                    return instance_right['id']
+                    return instance_right['href'].split('/')[-1]
             # If not already found: error
             self.log(
                 'error',
@@ -123,7 +125,7 @@ class RestApiExtension:
             return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
     def initialize_on_vcloud(self):
-        """Check/initialize the deployment of extension on vCloud.
+        """Check and/register the extension on vCloud.
         """
         self.log('info', 'Checking the initialization status of extension in vCloud.')
         if not (
@@ -133,134 +135,45 @@ class RestApiExtension:
         ):
             self.log('warning', 'Missing items in configuration to make the initialization check-up. Ignoring.')
             return
-        vcd_sess = VcdSession(
-            hostname=conf('global.vcloud.hostname'),
-            username=conf('global.vcloud.username'),
-            password=conf('global.vcloud.password'),
-            api_version=conf('global.vcloud.api_version'),
-            ssl_verify=conf('global.vcloud.ssl_verify', True),
-            logger_prefix=self.name
-        )
-        qf = f"name%3D%3D{self.name}%3Bnamespace%3D%3D{self.conf('vcloud.api_extension.namespace')}"
-        query_res = vcd_sess.query(type="adminService", filter=qf)
-        xml_data = self.generate_xml4ext()
-        if not query_res:
+        client = login_as_system_admin()
+        ext_manager = APIExtension(client)
+        try:
+            current_ext_on_vcd = ext_manager.get_extension_info(
+                self.name,
+                namespace=self.conf('vcloud.api_extension.namespace'))
+            self.log('info', 'Extension is already registered on vCloud')
+        except MissingRecordException:
             self.log('warning', "This extension is not (yet) declared on vCloud.")
             current_ext_on_vcd = None
-        else:
-            current_ext_on_vcd = query_res[0]
-        if current_ext_on_vcd and self.conf('vcloud.api_extension.force_redeploy'):
-            current_ext_on_vcd = self.unregister_extension(
-                vcd_sess, xml_data, current_ext_on_vcd.get("href"))
-        if (not current_ext_on_vcd) or self.conf('vcloud.api_extension.force_redeploy'):
-            current_ext_on_vcd = self.register_extension(vcd_sess, xml_data)
-            if not current_ext_on_vcd:
-                return  # error already logged
-        if not current_ext_on_vcd.get('enabled'):
-            self.log('warning', "This extension is not enabled on vCloud.")
-
-    def register_extension(self, vcd_sess: VcdSession, xml_data: str):
-        """Register this extension in vCloud Director.
-
-        Args:
-            vcd_sess (VcdSession): the vcloud session context.
-            xml_data (str): XML data for the extension.
-        """
-        self.log('info', f"Registering extension {self.name} as a new vCD API extension.")
-        ext_data = vcd_sess.post(
-            "/api/admin/extension/service",
-            data=xml_data,
-            content_type="application/vnd.vmware.admin.service+xml",
-            full_return=True
-        )
-        if ext_data.status_code >= 300:
-            self.log(
-                'error',
-                f"Error HTTP/{ext_data.status_code} when registering the new extension. Please check your settings."
-            )
-            self.log('debug', ext_data.content)
-            return None
-        else:
-            self.log('trivia', json.dumps(json.loads(ext_data.content), indent=2))
-            return json.loads(ext_data.content)
-
-    def unregister_extension(self, vcd_sess: VcdSession, xml_data: str, ext_href: str):
-        """Unregister this extension from vCloud Director.
-
-        Args:
-            vcd_sess (VcdSession): the vcloud session context.
-            xml_data (str): XML data for the extension.
-            ext_href (str): URI for the extension in API
-        """
-        self.log('info', f"Unregistering extension {self.name} from vCD API extension(s).")
-        self.log('debug', f"Disable extension {self.name} from vCD API extension(s).")
-        self.update_extension(
-            vcd_sess,
-            xml_data.replace("<vmext:Enabled>true", "<vmext:Enabled>false"),
-            ext_href
-        )
-        ext_href = "/api/" + ext_href.split('/api/')[1]  # remove hostname part
-        ext_data = vcd_sess.delete(
-            ext_href,
-            full_return=True
-        )
-        if ext_data.status_code >= 300:
-            self.log(
-                'error',
-                f"Error HTTP/{ext_data.status_code} when registering the new extension. Please check your settings."
-            )
-            self.log('debug', ext_data.content)
-            return None
-        else:
-            self.log('trivia', ext_data.content)
-            return None
-
-    # TODO : not updating ApiFilter...
-    def update_extension(self, vcd_sess: VcdSession, xml_data: str, ext_href: str):
-        """Update an existing extension in vCloud Director.
-
-        Args:
-            vcd_sess (VcdSession): the vcloud session context.
-            xml_data (str): XML data for the extension.
-            ext_href (str): URI for the extension in API
-        """
-        self.log('info', f"Updating extension {self.name} vCD API extension.")
-        ext_href = "/api/" + ext_href.split('/api/')[1]  # remove hostname part
-        ext_data = vcd_sess.put(
-            ext_href,
-            data=xml_data,
-            content_type="application/vnd.vmware.admin.service+xml",
-            full_return=True)
-        if ext_data.status_code >= 300:
-            self.log(
-                'error',
-                f"Error HTTP/{ext_data.status_code} when updating the new extension. Please check your settings."
-            )
-            self.log('debug', ext_data.content)
-            return None
-        else:
-            self.log('trivia', json.dumps(json.loads(ext_data.content), indent=2))
-            return json.loads(ext_data.content)
-
-    def generate_xml4ext(self):
-        """Generate the XML for the extension registering/update.
-        """
-        # prepare XML declaration
-        xml_api_filters = ""
-        for af in self.conf('vcloud.api_extension.api_filters'):
-            xml_api_filters += f"""<vmext:ApiFilter>
-        <vmext:UrlPattern>{af}</vmext:UrlPattern>
-    </vmext:ApiFilter>"""
-            xml_data = f"""<?xml version="1.0" encoding="UTF-8"?>
-<vmext:Service xmlns:vmext="http://www.vmware.com/vcloud/extension/v1.5"
-                xmlns="http://www.vmware.com/vcloud/v1.5" name="{self.name}">
-<vmext:Namespace>{self.conf('vcloud.api_extension.namespace')}</vmext:Namespace>
-<vmext:Enabled>true</vmext:Enabled>
-<vmext:RoutingKey>{self.conf('vcloud.api_extension.routing_key')}</vmext:RoutingKey>
-<vmext:Exchange>{self.conf('vcloud.api_extension.exchange')}</vmext:Exchange>
-<vmext:ApiFilters>
-    {xml_api_filters}
-</vmext:ApiFilters>
-</vmext:Service>"""
-        self.log('trivia', xml_data)
-        return xml_data
+        except MultipleRecordsException:
+            self.log('error', "Multiple extensions found with same name and namespace")
+            sys.exit(-1)
+        # Force a fresh redeploy of the full extension (Warning: be carrefull, ID will change !)
+        if current_ext_on_vcd and self.conf('vcloud.api_extension.force_redeploy', False):
+            ext_manager.delete_extension(
+                self.name,
+                namespace=self.conf('vcloud.api_extension.namespace'))
+            self.log('info', 'Extension is unregistered on vCloud')
+            current_ext_on_vcd = None
+        # Only update an existing extension (Warning: does not update the API filters/patterns!)
+        if current_ext_on_vcd and self.conf('vcloud.api_extension.auto_update', False):
+            current_ext_on_vcd = ext_manager.update_extension(
+                self.name,
+                namespace=self.conf('vcloud.api_extension.namespace'),
+                routing_key=self.conf('vcloud.api_extension.routing_key'),
+                exchange=self.conf('vcloud.api_extension.exchange'))
+            self.log('info', 'Extension is updated on vCloud')
+        # Register a new extension
+        if not current_ext_on_vcd:
+            ext_manager.add_extension(
+                self.name,
+                namespace=self.conf('vcloud.api_extension.namespace'),
+                routing_key=self.conf('vcloud.api_extension.routing_key'),
+                exchange=self.conf('vcloud.api_extension.exchange'),
+                patterns=self.conf('vcloud.api_extension.api_filters'))
+            self.log('info', 'Extension is registered on vCloud')
+        # Ensure to enable it
+        ext_manager.enable_extension(self.name,
+                namespace=self.conf('vcloud.api_extension.namespace'),
+                enabled=True)
+        self.log('info', 'Extension is enabled on vCloud')

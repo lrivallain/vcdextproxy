@@ -16,7 +16,8 @@ requirements = [
     "coloredlogs",
     "requests",
     "cachetools",
-    "PyYAML"
+    "PyYAML",
+    "pyvcloud"
 ]
 
 setup_requirements = [

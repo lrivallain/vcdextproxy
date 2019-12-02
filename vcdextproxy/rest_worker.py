@@ -7,7 +7,8 @@ import json
 import requests
 from threading import Thread
 from vcdextproxy.configuration import conf
-from vcdextproxy.vcd_utils import VcdSession
+from vcdextproxy.vcd_utils import login_from_token, get_user_rights
+from pyvcloud.vcd.org import Org
 
 
 class RESTWorker(Thread):
@@ -28,7 +29,7 @@ class RESTWorker(Thread):
         # get the current auth token
         self.token = None
         for header_key, header_value in self.headers.items():
-            if header_key.lower() == "x-vcloud-authorization" or header_key.lower() == "authorization":
+            if header_key.lower() == "x-vcloud-authorization":  # or header_key.lower() == "authorization":
                 self.token = header_value
 
     def forge_headers(self):
@@ -50,22 +51,15 @@ class RESTWorker(Thread):
     def pre_checks(self):
         """Run some pre-checks like checking rights.
         """
-        vcd_sess = VcdSession(
-            hostname=conf('global.vcloud.hostname'),
-            token=self.token,
-            api_version=conf('global.vcloud.api_version'),
-            ssl_verify=conf('global.vcloud.ssl_verify', True),
-            logger_prefix=self.extension.name
-        )
-        if self.extension.conf('vcloud.validate_org_membership'):
-            org_id = self.headers.get('org_id')
-            if not vcd_sess.is_org_member(org_id):
-                err_msg = f"The current user is not member of the org with id: {org_id}"
-                self.extension.log('error', err_msg)
-                self.reply({"forbidden": err_msg}, "403")
-                return False
+        client, session = login_from_token(self.token)
+        current_org = Org(client, resource=client.get_org())
+        if not self.headers.get('org_id') in current_org.href:
+            err_msg = f"The current user is logged in requested organization: {org_id}"
+            self.extension.log('error', err_msg)
+            self.reply({"forbidden": err_msg}, "403")
+            return False
         if self.extension.ref_right_id:
-            if not vcd_sess.has_right(self.vcd_data.get('rights'), self.extension.ref_right_id):
+            if self.extension.ref_right_id not in get_user_rights(client, session):
                 err_msg = "The current user does not have the requested right:"
                 err_msg += f" {self.extension.conf('vcloud.reference_right')}"
                 self.extension.log('error', err_msg)

@@ -3,6 +3,7 @@ global:
     hostname: vcdservername
     username: login
     password: "********"
+    system_org: System
     api_version: "33.0"
     ssl_verify: yes
     cache_timeout: 300
@@ -16,6 +17,11 @@ global:
     username: login
     password: "********"
   max_thread: 50
+  pyvcloud:
+    log_file: pyvcloud.log
+    log_requests: True
+    log_headers: False
+    log_bodies: False
 
 
 extensions:
